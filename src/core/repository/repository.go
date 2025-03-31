@@ -5,17 +5,22 @@ import (
 	"github.com/mymmrac/telego"
 )
 
-type Commands interface {
-	SendMoney(bot *telego.Bot, chatID int64, amount, recipient string) error
+type TopUpMoney interface {
 	TopUpMoney(bot *telego.Bot, chatID int64, amount string) error
 }
 
+type Transaction interface {
+	SendMoney(bot *telego.Bot, chatID int64, amount, recipient string) error
+}
+
 type Repository struct {
-	Commands
+	TopUpMoney
+	Transaction
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		NewCommandPostgres(db),
+		NewTopUpPostgres(db),
+		NewTransactionPostgres(db),
 	}
 }

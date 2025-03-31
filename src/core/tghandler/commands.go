@@ -28,9 +28,9 @@ func (h *Handler) sendUnknownMessage(bot *telego.Bot, chatID int64) {
 }
 
 func (h *Handler) sendMoney(bot *telego.Bot, chatID int64, amount, recipient string) {
-	_ = h.service.SendMoney(bot, chatID, amount, recipient)
+	_ = h.service.Transaction.SendMoney(bot, chatID, amount, recipient)
 }
 
 func (h *Handler) topUpMoney(bot *telego.Bot, chatID int64, amount string) {
-	_ = h.service.TopUpMoney(bot, chatID, amount)
+	_ = h.service.TopUpMoney.TopUpMoney(bot, chatID, amount)
 }

@@ -1,6 +1,0 @@
-db:
-  username: "postgres"
-  host: "localhost"
-  port: "5436"
-  dbname: "telegram-db"
-  sslmode: "disable"

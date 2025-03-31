@@ -5,18 +5,28 @@ import (
 	"tg_transaction/src/core/repository"
 )
 
-type Commands interface {
-	SendMoney(bot *telego.Bot, chatID int64, amount, recipient string) error
+type TopUpMoney interface {
 	TopUpMoney(bot *telego.Bot, chatID int64, amount string) error
+}
+
+type Transaction interface {
+	SendMoney(bot *telego.Bot, chatID int64, amount, recipient string) error
+}
+
+type BotActions interface {
 	SendMessage(bot *telego.Bot, chatID int64, msg string) error
 }
 
 type Service struct {
-	Commands
+	TopUpMoney
+	Transaction
+	BotActions
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		NewCommandService(repos.Commands),
+		NewTopUpService(repos.TopUpMoney),
+		NewTransactionService(repos.Transaction),
+		NewBotActionsService(),
 	}
 }

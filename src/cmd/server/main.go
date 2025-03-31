@@ -1,13 +1,13 @@
-package server
+package main
 
 import (
 	"context"
 	"github.com/joho/godotenv"
 	"github.com/mymmrac/telego"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"log"
 	"net/http"
+	"os"
 	"tg_transaction/src/core/repository"
 	"tg_transaction/src/core/service"
 	"tg_transaction/src/core/tghandler"
@@ -20,17 +20,13 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	if err := pgxhelper.InitConfig(); err != nil {
-		log.Fatal("Error initializing config")
-	}
-
 	db, err := pgxhelper.NewPostgresDB(pgxhelper.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		Password: viper.GetString("db.password"),
-		DbName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
+		Host:     os.Getenv("HOST"),
+		Port:     os.Getenv("PORT"),
+		Username: os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DbName:   os.Getenv("DB_NAME"),
+		SSLMode:  os.Getenv("SSLMODE"),
 	})
 
 	if err != nil {
@@ -41,7 +37,7 @@ func main() {
 	services := service.NewService(repos)
 	handler := tghandler.NewHandler(services)
 
-	botToken := viper.GetString("TOKEN")
+	botToken := os.Getenv("TOKEN")
 
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 
