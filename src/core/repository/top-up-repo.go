@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"github.com/mymmrac/telego"
 )
 
 type TopUpPostgres struct {
@@ -13,6 +12,6 @@ func NewTopUpPostgres(db *sql.DB) *TopUpPostgres {
 	return &TopUpPostgres{db: db}
 }
 
-func (c *TopUpPostgres) TopUpMoney(bot *telego.Bot, chatID int64, amount string) error {
+func (c *TopUpPostgres) TopUpMoney(username string, amount int) error {
 	return nil
 }

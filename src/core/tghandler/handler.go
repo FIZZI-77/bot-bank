@@ -2,6 +2,8 @@ package tghandler
 
 import (
 	"github.com/mymmrac/telego"
+	"log"
+	"strconv"
 	"strings"
 	"tg_transaction/src/core/service"
 )
@@ -14,12 +16,22 @@ func NewHandler(service *service.Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) error {
+func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err error) {
 
 	text := message.Text
 	chatID := message.Chat.ID
-
+	username := message.Chat.Username
 	parts := strings.Split(text, " ")
+
+	var amount int
+	if len(parts) != 1 {
+		amount, err = strconv.Atoi(parts[1])
+		if err != nil {
+			log.Fatalf("Error converting amount to int: %v", err)
+		}
+		h.checkCommand(parts[0], parts, amount)
+	}
+
 	switch parts[0] {
 	case "/start":
 		if err := h.sendStartMessage(bot, chatID); err != nil {
@@ -30,9 +42,9 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) error 
 			return err
 		}
 	case "/send":
-		h.sendMoney(bot, chatID, parts[1], parts[2])
+		h.sendMoney(username, amount, parts[2])
 	case "/top-up":
-		h.topUpMoney(bot, chatID, parts[1])
+		h.topUpMoney(username, amount)
 	default:
 		h.sendUnknownMessage(bot, chatID)
 	}

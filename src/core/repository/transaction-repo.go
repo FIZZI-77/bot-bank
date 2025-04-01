@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"github.com/mymmrac/telego"
 )
 
 type TransactionPostgres struct {
@@ -13,6 +12,6 @@ func NewTransactionPostgres(db *sql.DB) *TransactionPostgres {
 	return &TransactionPostgres{db: db}
 }
 
-func (c *TransactionPostgres) SendMoney(bot *telego.Bot, chatID int64, amount, recipient string) error {
+func (c *TransactionPostgres) SendMoney(username string, amount int, recipient string) error {
 	return nil
 }

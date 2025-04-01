@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/mymmrac/telego"
 	"tg_transaction/src/core/repository"
 )
 
@@ -13,6 +12,6 @@ func NewTopUpService(repo repository.TopUpMoney) *TopUpService {
 	return &TopUpService{repo: repo}
 }
 
-func (c *TopUpService) TopUpMoney(bot *telego.Bot, chatID int64, amount string) error {
-	return c.repo.TopUpMoney(bot, chatID, amount)
+func (c *TopUpService) TopUpMoney(username string, amount int) error {
+	return c.repo.TopUpMoney(username, amount)
 }
