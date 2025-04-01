@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"github.com/mymmrac/telego"
 	"github.com/sirupsen/logrus"
 	"log"
-	"net/http"
 	"os"
 	"tg_transaction/src/core/repository"
 	"tg_transaction/src/core/service"
@@ -17,7 +17,7 @@ import (
 func main() {
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file %s", err.Error())
 	}
 
 	db, err := pgxhelper.NewPostgresDB(pgxhelper.Config{
@@ -42,40 +42,35 @@ func main() {
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 
 	if err != nil {
-		log.Fatalf("Не удалось запустить бота: %s", err)
+		log.Fatalf("Не удалось запустить бота: %s", err.Error())
 	}
 
 	ctx := context.Background()
 
-	err = bot.SetWebhook(ctx, &telego.SetWebhookParams{
-		URL:         "https://example.com/bot",
-		SecretToken: bot.SecretToken(),
-	})
+	offset := 0
 
-	if err != nil {
-		log.Fatalf("Main SetWebhook : не удалось установить настройки webhook: %s", err)
-	}
+	for {
 
-	mux := http.NewServeMux()
+		updates, err := bot.GetUpdates(ctx, &telego.GetUpdatesParams{
+			Offset:  offset,
+			Timeout: 8,
+		})
+		if err != nil {
+			log.Fatalf("Ошибка получения обновлений: %s", err.Error())
+		}
 
-	updates, err := bot.UpdatesViaWebhook(ctx, telego.WebhookHTTPServeMux(mux, "/bot", bot.SecretToken()))
-	if err != nil {
-		log.Fatalf("Main UpdatesViaWebhook: не удалось получить pdates: %s", err)
-	}
-
-	go func() {
-		_ = http.ListenAndServe(":443", mux)
-		log.Print("Сервер запущен")
-	}()
-
-	for update := range updates {
-		log.Printf("Update: %+v\n", update)
-		if update.Message != nil {
-			if err = handler.HandleMessage(bot, update.Message); err != nil {
-				logrus.Errorf("Main: cant't handle message : %v", err)
+		for _, update := range updates {
+			log.Printf("Пришло обновление: %+v\n", update)
+			if update.Message.Text != "" {
+				err = handler.HandleMessage(bot, update.Message)
+				if err != nil {
+					logrus.Errorf("Ошибка обработки сообщения: %v", err)
+				}
 			}
 
+			offset = update.UpdateID + 1
 		}
+
 	}
 
 }

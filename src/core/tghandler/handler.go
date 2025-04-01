@@ -22,9 +22,13 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) error 
 	parts := strings.Split(text, " ")
 	switch parts[0] {
 	case "/start":
-		h.sendStartMessage(bot, chatID)
+		if err := h.sendStartMessage(bot, chatID); err != nil {
+			return err
+		}
 	case "/help":
-		h.sendHelpMessage(bot, chatID)
+		if err := h.sendHelpMessage(bot, chatID); err != nil {
+			return err
+		}
 	case "/send":
 		h.sendMoney(bot, chatID, parts[1], parts[2])
 	case "/top-up":
