@@ -37,14 +37,18 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 		if err := h.sendStartMessage(bot, chatID); err != nil {
 			return err
 		}
+		h.addUser(username)
 	case "/help":
 		if err := h.sendHelpMessage(bot, chatID); err != nil {
 			return err
 		}
+	case "/topup":
+		h.topUpMoney(username, amount)
+		
 	case "/send":
 		h.sendMoney(username, amount, parts[2])
-	case "/top-up":
-		h.topUpMoney(username, amount)
+	case "/balance":
+		h.takeBalanceMessage(bot, chatID, username)
 	default:
 		h.sendUnknownMessage(bot, chatID)
 	}

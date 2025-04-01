@@ -11,6 +11,8 @@ type TopUpMoney interface {
 
 type Transaction interface {
 	SendMoney(username string, amount int, recipient string) error
+	TakeBalance(username string) (int, error)
+	IsEnoughMoney(amount, balance int) (bool, error)
 }
 
 type BotActions interface {

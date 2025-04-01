@@ -30,10 +30,10 @@ func (h *Handler) sendUnknownMessage(bot *telego.Bot, chatID int64) {
 	}
 }
 
-func (h *Handler) sendMoney(username string, amount int, recipient string) {
-	_ = h.service.Transaction.SendMoney(username, amount, recipient)
-}
-
-func (h *Handler) topUpMoney(username string, amount int) {
-	_ = h.service.TopUpMoney.TopUpMoney(username, amount)
+func (h *Handler) takeBalanceMessage(bot *telego.Bot, chatID int64, username string) {
+	balance := h.takeBalance(username)
+	err := h.service.SendMessage(bot, chatID, messages.MsgBalance+fmt.Sprintf("%d", balance))
+	if err != nil {
+		logrus.Errorf("handler takeBalanceMessage: cant't send balance message %v", err)
+	}
 }

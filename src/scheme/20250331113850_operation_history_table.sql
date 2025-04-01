@@ -6,7 +6,6 @@ CREATE TABLE operations(
     operation_author VARCHAR(255) REFERENCES users(username) ON DELETE CASCADE NOT NULL,
     operation VARCHAR(255),
     amount int NOT NULL,
-    status BOOLEAN NOT NULL DEFAULT FALSE,
     recipient VARCHAR(255)
 
 );

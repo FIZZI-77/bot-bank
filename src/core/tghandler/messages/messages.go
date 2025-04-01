@@ -11,4 +11,5 @@ const MsgHello = "Hi there! 👾\n\n" + MsgHelp
 
 const (
 	MsgUnknownCommand = "Unknown command 🤔"
+	MsgBalance        = "Ваш баланс 💰: "
 )
