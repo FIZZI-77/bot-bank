@@ -4,30 +4,31 @@ import (
 	"database/sql"
 )
 
-type TopUpMoney interface {
-	TopUpMoney(username string, amount int) error
+type TopUpMoneyRepo interface {
+	TopUpMoney(userId int64, amount float64) error
 }
 
-type Transaction interface {
-	SendMoney(username string, amount int, recipient string) error
-	TakeBalance(username string) (int, error)
+type TransactionRepo interface {
+	SendMoney(username int64, amount float64, recipient int64) error
+	TakeBalance(userTgID int64) (float64, error)
 }
 
-type UserActions interface {
+type UserActionsRepo interface {
 	IsUserExists(username string) (bool, error)
-	AddUser(username string, tgID int) error
+	AddUser(username, userid string, tgID int64) error
+	TakeUserTgID(username string) (int64, error)
 }
 
 type Repository struct {
-	TopUpMoney
-	Transaction
-	UserActions
+	UserActionsRepo
+	TopUpMoneyRepo
+	TransactionRepo
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
+		NewUserActionPostgres(db),
 		NewTopUpPostgres(db),
 		NewTransactionPostgres(db),
-		NewUserActionPostgres(db),
 	}
 }

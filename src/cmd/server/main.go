@@ -49,9 +49,10 @@ func main() {
 
 	offset := 0
 
+	var updates []telego.Update
 	for {
 
-		updates, err := bot.GetUpdates(ctx, &telego.GetUpdatesParams{
+		updates, err = bot.GetUpdates(ctx, &telego.GetUpdatesParams{
 			Offset:  offset,
 			Timeout: 8,
 		})
@@ -60,6 +61,7 @@ func main() {
 		}
 
 		for _, update := range updates {
+
 			log.Printf("Пришло обновление: %+v\n", update)
 			if update.Message.Text != "" {
 				err = handler.HandleMessage(bot, update.Message)

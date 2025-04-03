@@ -6,7 +6,7 @@ import (
 
 // Проверка что сумма положительна
 
-func (h *Handler) checkCommand(command string, parts []string, amount int) bool {
+func (h *Handler) checkCommand(command string, parts []string, amount float64) bool {
 
 	if amount <= 0 {
 		logrus.Error("ведена неверная сумма для перевода")

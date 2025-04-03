@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/scheme/20250331113700_create_table_user.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/scheme/20250331113850_create_table_operation_history.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/core/repository/top-up-repo.go" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/core/repository/transaction-repo.go" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/core/repository/user-action-repo.go" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/src/scheme/20250331113700_users_table.sql" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/src/scheme/20250331113850_operation_history_table.sql" dialect="GenericSQL" />
   </component>
 </project>

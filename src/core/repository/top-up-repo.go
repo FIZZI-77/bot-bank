@@ -13,15 +13,15 @@ func NewTopUpPostgres(db *sql.DB) *TopUpPostgres {
 	return &TopUpPostgres{db: db}
 }
 
-func (c *TopUpPostgres) TopUpMoney(username string, amount int) error {
+func (c *TopUpPostgres) TopUpMoney(userId int64, amount float64) error {
 
 	tx, err := c.db.Begin()
 	if err != nil {
 		return err
 	}
 	operation := "top-up"
-	topUpQuery := fmt.Sprintf("INSERT INTO operations (operation_author,operation,amount) VALUES ($1,$2,$3)")
-	_, err = tx.Exec(topUpQuery, username, operation, amount)
+	const topUpQuery = "INSERT INTO operations_history (sender,operation_type,amount) VALUES ($1,$2,$3)"
+	_, err = tx.Exec(topUpQuery, userId, operation, amount)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
 			return fmt.Errorf("topUp rollback failed: %v", err)

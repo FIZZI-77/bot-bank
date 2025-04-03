@@ -32,7 +32,7 @@ func (h *Handler) sendUnknownMessage(bot *telego.Bot, chatID int64) {
 
 func (h *Handler) takeBalanceMessage(bot *telego.Bot, chatID int64, username string) {
 	balance := h.takeBalance(username)
-	err := h.service.SendMessage(bot, chatID, messages.MsgBalance+fmt.Sprintf("%d", balance))
+	err := h.service.SendMessage(bot, chatID, messages.MsgBalance+fmt.Sprintf("%.2f\n", balance))
 	if err != nil {
 		logrus.Errorf("handler takeBalanceMessage: cant't send balance message %v", err)
 	}

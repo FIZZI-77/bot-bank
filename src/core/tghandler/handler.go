@@ -21,12 +21,12 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 	text := message.Text
 	chatID := message.Chat.ID
 	username := message.Chat.Username
-	telegramID := message.Chat.ID
+	telegramID := message.From.ID
 	parts := strings.Split(text, " ")
 
-	var amount int
+	var amount float64
 	if len(parts) != 1 {
-		amount, err = strconv.Atoi(parts[1])
+		amount, err = strconv.ParseFloat(parts[1], 64)
 		if err != nil {
 			log.Fatalf("Error converting amount to int: %v", err)
 		}

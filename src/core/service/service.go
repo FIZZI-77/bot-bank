@@ -6,13 +6,13 @@ import (
 )
 
 type TopUpMoney interface {
-	TopUpMoney(username string, amount int) error
+	TopUpMoney(username string, amount float64) error
 }
 
 type Transaction interface {
-	SendMoney(username string, amount int, recipient string) error
-	TakeBalance(username string) (int, error)
-	IsEnoughMoney(amount, balance int) bool
+	SendMoney(username string, amount float64, recipient string) error
+	TakeBalance(username string) (float64, error)
+	IsEnoughMoney(amount, balance float64) bool
 }
 
 type BotActions interface {
@@ -21,7 +21,7 @@ type BotActions interface {
 
 type UserActions interface {
 	IsUserExists(username string) (bool, error)
-	AddUser(username string, tgID int) error
+	AddUser(username string, tgID int64) error
 }
 type Service struct {
 	TopUpMoney
@@ -32,9 +32,9 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		NewTopUpService(repos.TopUpMoney),
-		NewTransactionService(repos.Transaction),
+		NewTopUpService(repos.TopUpMoneyRepo, repos.UserActionsRepo),
+		NewTransactionService(repos.TransactionRepo, repos.UserActionsRepo),
 		NewBotActionsService(),
-		NewUserActionService(repos.UserActions),
+		NewUserActionService(repos.UserActionsRepo),
 	}
 }

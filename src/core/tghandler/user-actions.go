@@ -4,9 +4,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *Handler) addUser(username string, tgID int) {
+func (h *Handler) addUser(username string, tgID int64) {
 
-	isExist, err := h.service.UserActions.IsUserExists(username, tgID)
+	isExist, err := h.service.UserActions.IsUserExists(username)
 
 	if err != nil {
 		logrus.Errorf("Ошибка проверки : %s\n", err.Error())

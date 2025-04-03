@@ -9,6 +9,7 @@ require (
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/grbit/go-json v0.11.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
