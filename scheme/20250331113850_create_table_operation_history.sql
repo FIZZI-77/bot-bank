@@ -1,12 +1,12 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE operations(
+CREATE TABLE operations_history(
     id UUID PRIMARY KEY,
-    operation_author VARCHAR(255) NOT NULL,
+    sender UUID NOT NULL,
     operation_type VARCHAR(255),
     amount decimal(19,4)  NOT NULL,
-    recipient VARCHAR(255)
+    recipient UUID
 
 );
 -- +goose StatementEnd
