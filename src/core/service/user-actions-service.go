@@ -14,6 +14,6 @@ func (c *UserActionService) IsUserExists(username string) (bool, error) {
 	return c.repo.IsUserExists(username)
 }
 
-func (c *UserActionService) AddUser(username string) error {
-	return c.repo.AddUser(username)
+func (c *UserActionService) AddUser(username string, tgID int) error {
+	return c.repo.AddUser(username, tgID)
 }

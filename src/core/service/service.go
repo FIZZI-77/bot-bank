@@ -12,7 +12,7 @@ type TopUpMoney interface {
 type Transaction interface {
 	SendMoney(username string, amount int, recipient string) error
 	TakeBalance(username string) (int, error)
-	IsEnoughMoney(amount, balance int) (bool, error)
+	IsEnoughMoney(amount, balance int) bool
 }
 
 type BotActions interface {
@@ -21,7 +21,7 @@ type BotActions interface {
 
 type UserActions interface {
 	IsUserExists(username string) (bool, error)
-	AddUser(username string) error
+	AddUser(username string, tgID int) error
 }
 type Service struct {
 	TopUpMoney

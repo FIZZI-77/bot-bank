@@ -21,6 +21,7 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 	text := message.Text
 	chatID := message.Chat.ID
 	username := message.Chat.Username
+	telegramID := message.Chat.ID
 	parts := strings.Split(text, " ")
 
 	var amount int
@@ -37,14 +38,14 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 		if err := h.sendStartMessage(bot, chatID); err != nil {
 			return err
 		}
-		h.addUser(username)
+		h.addUser(username, telegramID)
 	case "/help":
 		if err := h.sendHelpMessage(bot, chatID); err != nil {
 			return err
 		}
 	case "/topup":
 		h.topUpMoney(username, amount)
-		
+
 	case "/send":
 		h.sendMoney(username, amount, parts[2])
 	case "/balance":

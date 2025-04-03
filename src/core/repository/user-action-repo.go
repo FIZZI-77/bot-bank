@@ -27,14 +27,14 @@ func (c *UserActionPostgres) IsUserExists(username string) (bool, error) {
 	return true, nil
 }
 
-func (c *UserActionPostgres) AddUser(username string) error {
+func (c *UserActionPostgres) AddUser(username string, tgID int) error {
 
 	tx, err := c.db.Begin()
 	if err != nil {
 		return err
 	}
-	addUserQuery := fmt.Sprintf("INSERT INTO users (username) VALUES ($1)")
-	_, err = tx.Exec(addUserQuery, username)
+	addUserQuery := fmt.Sprintf("INSERT INTO users (username,telegram_id) VALUES ($1,$2)")
+	_, err = tx.Exec(addUserQuery, username, tgID)
 
 	if err != nil {
 		if err := tx.Rollback(); err != nil {

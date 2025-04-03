@@ -4,16 +4,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *Handler) addUser(username string) {
+func (h *Handler) addUser(username string, tgID int) {
 
-	isExist, err := h.service.UserActions.IsUserExists(username)
+	isExist, err := h.service.UserActions.IsUserExists(username, tgID)
 
 	if err != nil {
 		logrus.Errorf("Ошибка проверки : %s\n", err.Error())
 	}
 
 	if isExist {
-		err = h.service.UserActions.AddUser(username)
+		err = h.service.UserActions.AddUser(username, tgID)
 		if err != nil {
 			logrus.Errorf("add user failed: %v\n", err)
 		}

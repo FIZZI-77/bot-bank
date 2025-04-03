@@ -2,7 +2,8 @@
 -- +goose StatementBegin
 
 CREATE TABLE users(
-    id serial PRIMARY KEY,
+    id UUID PRIMARY KEY,
+    telegram_id uuid NOT NULL UNIQUE,
     username VARCHAR(255) NOT NULL UNIQUE
 );
 -- +goose StatementEnd
