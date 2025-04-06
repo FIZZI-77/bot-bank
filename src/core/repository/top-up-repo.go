@@ -24,9 +24,9 @@ func (c *TopUpPostgres) TopUpMoney(userId int64, amount float64) error {
 	_, err = tx.Exec(topUpQuery, userId, operation, amount)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return fmt.Errorf("topUp rollback failed: %v", err)
+			return fmt.Errorf("top-up-repo: TopUpMoney() : topUp rollback failed: %v", err)
 		}
-		return fmt.Errorf("topUp money failed: %v", err)
+		return fmt.Errorf("top-up-repo: TopUpMoney() : topUp money failed: %v", err)
 	}
 	return tx.Commit()
 }

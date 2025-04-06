@@ -28,10 +28,10 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 	if len(parts) != 1 {
 		amount, err = strconv.ParseFloat(parts[1], 64)
 		if err != nil {
-			log.Fatalf("Error converting amount to int: %v", err)
+			log.Fatalf("Handler : HandleMessage(): Error converting amount to int: %v", err)
 		}
-		h.checkCommand(parts[0], parts, amount)
 	}
+	isCommandCorrect := h.isCommandCorrect(parts[0], parts, amount)
 
 	switch {
 	case parts[0] == "/start" && len(parts) == 1:
@@ -44,10 +44,9 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 			return err
 		}
 	case parts[0] == "/topup" && len(parts) == 2:
-		h.topUpMoney(username, amount)
-
+		h.topUpMoney(username, amount, isCommandCorrect, bot, chatID)
 	case parts[0] == "/send" && len(parts) == 3:
-		h.sendMoney(username, amount, parts[2])
+		h.sendMoney(username, amount, parts[2], isCommandCorrect, bot, chatID)
 	case parts[0] == "/balance" && len(parts) == 1:
 		h.takeBalanceMessage(bot, chatID, username)
 	default:

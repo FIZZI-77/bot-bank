@@ -9,16 +9,16 @@ func (h *Handler) addUser(username string, tgID int64) {
 	isExist, err := h.service.UserActions.IsUserExists(username)
 
 	if err != nil {
-		logrus.Errorf("Ошибка проверки : %s\n", err.Error())
+		logrus.Errorf("user-actions handler: addUser() :error check user exists : %s\n", err.Error())
 	}
 
 	if isExist {
 		err = h.service.UserActions.AddUser(username, tgID)
 		if err != nil {
-			logrus.Errorf("add user failed: %v\n", err)
+			logrus.Errorf("user-actions handler: addUser() : add user failed: %v\n", err)
 		}
 	} else {
-		logrus.Errorf("add user failed: already exists")
+		logrus.Errorf("user-actions handler: addUser() : add user failed: already exists")
 	}
 
 }

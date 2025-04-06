@@ -20,7 +20,7 @@ func (c *BotActionsService) SendMessage(bot *telego.Bot, chatID int64, msg strin
 		Text:   msg,
 	})
 	if err != nil {
-		return fmt.Errorf("handler:failed to send message: %w", err)
+		return fmt.Errorf("bot-action service: SendMessage() :failed to send message: %w", err)
 	}
 	return nil
 }

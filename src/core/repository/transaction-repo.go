@@ -26,9 +26,9 @@ func (c *TransactionPostgres) SendMoney(username int64, amount float64, recipien
 	_, err = tx.Exec(sendQuery, username, operationType, amount, recipient)
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return fmt.Errorf("transaction rollback failed: %v", err)
+			return fmt.Errorf("transaction-repo: SendMoney() : transaction rollback failed: %v", err)
 		}
-		return fmt.Errorf("send money failed: %v", err)
+		return fmt.Errorf("transaction-repo: SendMoney() : send money failed: %v", err)
 	}
 	return tx.Commit()
 }
@@ -46,7 +46,7 @@ func (c *TransactionPostgres) TakeBalance(userTgID int64) (float64, error) {
 	`
 	err := c.db.QueryRow(takeSendOperationsQuery, userTgID).Scan(&balance)
 	if err != nil {
-		return 0, fmt.Errorf("TakeBalance failed: %v", err)
+		return 0, fmt.Errorf("transaction-repo: TakeBalance() : TakeBalance failed: %v", err)
 	}
 	return balance, nil
 }

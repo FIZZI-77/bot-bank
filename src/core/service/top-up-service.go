@@ -18,7 +18,7 @@ func (c *TopUpService) TopUpMoney(username string, amount float64) error {
 
 	senderID, err := c.actionRepo.TakeUserTgID(username)
 	if err != nil {
-		return fmt.Errorf("take user tgID %s failed: %v", username, err)
+		return fmt.Errorf("top-up-service : TopUpMoney() : take user tgID %s failed: %v", username, err)
 	}
 
 	return c.repo.TopUpMoney(senderID, amount)

@@ -30,7 +30,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatalf("Ошибка подключения к базе данны: %s", err.Error())
+		log.Fatalf("Error connect to db: %s", err.Error())
 	}
 
 	repos := repository.NewRepository(db)
@@ -42,7 +42,7 @@ func main() {
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 
 	if err != nil {
-		log.Fatalf("Не удалось запустить бота: %s", err.Error())
+		log.Fatalf("can't start bot: %s", err.Error())
 	}
 
 	ctx := context.Background()
@@ -57,16 +57,16 @@ func main() {
 			Timeout: 8,
 		})
 		if err != nil {
-			log.Fatalf("Ошибка получения обновлений: %s", err.Error())
+			log.Fatalf("error take updates: %s", err.Error())
 		}
 
 		for _, update := range updates {
 
-			log.Printf("Пришло обновление: %+v\n", update)
+			log.Printf("Update come: %+v\n", update)
 			if update.Message.Text != "" {
 				err = handler.HandleMessage(bot, update.Message)
 				if err != nil {
-					logrus.Errorf("Ошибка обработки сообщения: %v", err)
+					logrus.Errorf("Message processing error: %v", err)
 				}
 			}
 

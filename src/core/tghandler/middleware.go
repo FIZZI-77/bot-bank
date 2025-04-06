@@ -1,31 +1,41 @@
 package tghandler
 
 import (
+	"github.com/mymmrac/telego"
 	"github.com/sirupsen/logrus"
+	"tg_transaction/src/core/tghandler/messages"
 )
 
 // Проверка что сумма положительна
 
-func (h *Handler) checkCommand(command string, parts []string, amount float64) bool {
+func (h *Handler) isCommandCorrect(command string, parts []string, amount float64) bool {
 
-	if amount <= 0 {
-		logrus.Error("ведена неверная сумма для перевода")
+	if ((command == "/send" && len(parts) == 3) || (command == "/topup" && len(parts) == 2)) && amount <= 0 {
+		logrus.Error("middleware: isCommandCorrect() : wrong amount for command")
 		return false
 	}
-	switch command {
-	case "/send":
-		if len(parts) != 3 {
-			logrus.Error("неправильное кол-во аргументов в комманде /send")
-			return false
-		}
+	if command == "/send" && len(parts) != 3 {
+		logrus.Error("middleware: isCommandCorrect() : wrong count arguments in command  /send")
+		return false
+	}
 
-	case "/top-up":
-		if len(parts) != 2 {
-			logrus.Error("неправильное кол-во аргументов в комманде /top-up")
-			return false
-		}
-
+	if command == "/topup" && len(parts) != 2 {
+		logrus.Error("middleware: isCommandCorrect() : wrong count arguments in command  /top-up")
+		return false
 	}
 	return true
+}
+
+func (h *Handler) isRecipientCorrect(recipient string, bot *telego.Bot, chatID int64) bool {
+	isExist, err := h.service.IsUserExists(recipient)
+	if err != nil {
+		logrus.Errorf("middleware: isRecipientCorrect() : error checking user existence: %v", err.Error())
+	}
+	if !isExist {
+		if err = h.service.SendMessage(bot, chatID, messages.MsgUserNotExist); err != nil {
+			logrus.Errorf("middleware: isRecipientCorrect() : error sending message UserNotExist: %v", err.Error())
+		}
+	}
+	return isExist
 
 }
