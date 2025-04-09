@@ -6,11 +6,13 @@ import (
 
 type TopUpMoneyRepo interface {
 	TopUpMoney(userId int64, amount float64) error
+	GetTotalTopupAmount(userTgID int64) (float64, error)
 }
 
 type TransactionRepo interface {
 	SendMoney(username int64, amount float64, recipient int64) error
-	TakeBalance(userTgID int64) (float64, error)
+	GetTotalSentAmount(userTgID int64) (float64, error)
+	GetTotalReceivedAmount(userTgID int64) (float64, error)
 }
 
 type UserActionsRepo interface {

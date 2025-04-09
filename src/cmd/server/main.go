@@ -41,6 +41,11 @@ func main() {
 
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 
+	params := &telego.DeleteWebhookParams{}
+	err = bot.DeleteWebhook(context.Background(), params)
+	if err != nil {
+		log.Fatalf("Ошибка при удалении webhook: %s", err.Error())
+	}
 	if err != nil {
 		log.Fatalf("can't start bot: %s", err.Error())
 	}

@@ -45,7 +45,7 @@ func (h *Handler) topUpMoney(username string, amount float64, isCommandCorrect b
 }
 
 func (h *Handler) takeBalance(username string) float64 {
-	balance, err := h.service.TakeBalance(username)
+	balance, err := h.service.TakeTotalBalance(username)
 	if err != nil {
 		logrus.Errorf("bank-operation hendler: takeBalance() : Error take balance: %s", err.Error())
 

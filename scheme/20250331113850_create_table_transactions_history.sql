@@ -1,10 +1,9 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE operations_history(
+CREATE TABLE transactions_history(
     id SERIAL PRIMARY KEY,
     sender BIGINT NOT NULL,
-    operation_type VARCHAR(255),
     amount decimal(18,2)  NOT NULL,
     recipient BIGINT
 
@@ -13,5 +12,5 @@ CREATE TABLE operations_history(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE operations_history CASCADE;
+DROP TABLE transactions_history CASCADE;
 -- +goose StatementEnd

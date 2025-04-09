@@ -8,10 +8,15 @@ import (
 type TransactionService struct {
 	repo       repository.TransactionRepo
 	actionRepo repository.UserActionsRepo
+	balance    Balance
 }
 
-func NewTransactionService(repo repository.TransactionRepo, actionRepo repository.UserActionsRepo) *TransactionService {
-	return &TransactionService{repo: repo, actionRepo: actionRepo}
+func NewTransactionService(repo repository.TransactionRepo, actionRepo repository.UserActionsRepo, balance Balance) *TransactionService {
+	return &TransactionService{repo: repo, actionRepo: actionRepo, balance: balance}
+}
+
+func (c *TransactionService) SetBalance(balance Balance) {
+	c.balance = balance
 }
 
 func (c *TransactionService) IsEnoughMoney(amount, balance float64) bool {
@@ -28,7 +33,7 @@ func (c *TransactionService) SendMoney(username string, amount float64, recipien
 		return fmt.Errorf("transaction-service : SendMoney() :take user tgID %s failed: %v", username, err)
 	}
 
-	balance, err := c.TakeBalance(username)
+	balance, err := c.balance.TakeTotalBalance(username)
 
 	if err != nil {
 		return fmt.Errorf("transaction-service: SendMoney : error taking balance: %v", err)
@@ -40,10 +45,24 @@ func (c *TransactionService) SendMoney(username string, amount float64, recipien
 	}
 	return c.repo.SendMoney(userTgID, amount, recipientTgID)
 }
-func (c *TransactionService) TakeBalance(username string) (float64, error) {
+
+func (c *TransactionService) GetTotalTransactionAmount(username string) (float64, error) {
+	var totalAmount float64
 	senderID, err := c.actionRepo.TakeUserTgID(username)
 	if err != nil {
-		return 0, fmt.Errorf("transaction-service : TakeBalance() : take user tgID %s failed: %v", username, err)
+		return 0, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : take user tgID %s failed: %v", username, err)
 	}
-	return c.repo.TakeBalance(senderID)
+
+	totalReceivedAmount, err := c.repo.GetTotalReceivedAmount(senderID)
+	if err != nil {
+		return 0, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : GetTotalReceivedAmount failed: %v", err)
+	}
+	totalSentAmount, err := c.repo.GetTotalSentAmount(senderID)
+	if err != nil {
+		return 0, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : GetTotalSentAmount failed: %v", err)
+	}
+
+	totalAmount = totalReceivedAmount - totalSentAmount
+
+	return totalAmount, nil
 }

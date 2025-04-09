@@ -11,6 +11,6 @@ goose -dir scheme  postgres "postgresql://postgres:qwerty@127.0.0.1:5436/tg-db?s
 
 ### 3️⃣ Запуск самого приложения
 ```sh
-go run cmd/main.go
+go run src/cmd/server/main.go
 ```
 

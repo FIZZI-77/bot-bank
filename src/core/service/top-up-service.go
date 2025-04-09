@@ -23,3 +23,11 @@ func (c *TopUpService) TopUpMoney(username string, amount float64) error {
 
 	return c.repo.TopUpMoney(senderID, amount)
 }
+
+func (c *TopUpService) GetTotalTopupAmount(username string) (float64, error) {
+	senderID, err := c.actionRepo.TakeUserTgID(username)
+	if err != nil {
+		return 0, fmt.Errorf("top-up-service : GetTotalTopupAmount() : take user tgID %s failed: %v", username, err)
+	}
+	return c.repo.GetTotalTopupAmount(senderID)
+}
