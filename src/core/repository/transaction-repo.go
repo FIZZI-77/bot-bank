@@ -13,7 +13,7 @@ func NewTransactionPostgres(db *sql.DB) *TransactionPostgres {
 	return &TransactionPostgres{db: db}
 }
 
-func (c *TransactionPostgres) SendMoney(username int64, amount float64, recipient int64) error {
+func (c *TransactionPostgres) PersistTransaction(username int64, amount float64, recipient int64) error {
 
 	const sendQuery = "INSERT INTO transactions_history (sender,amount,recipient) VALUES ($1,$2,$3)"
 

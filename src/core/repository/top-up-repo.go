@@ -13,7 +13,7 @@ func NewTopUpPostgres(db *sql.DB) *TopUpPostgres {
 	return &TopUpPostgres{db: db}
 }
 
-func (c *TopUpPostgres) TopUpMoney(userId int64, amount float64) error {
+func (c *TopUpPostgres) PersistTopUp(userId int64, amount float64) error {
 
 	const topUpQuery = "INSERT INTO topup_history (user_telegram_id,amount) VALUES ($1,$2)"
 	_, err := c.db.Exec(topUpQuery, userId, amount)

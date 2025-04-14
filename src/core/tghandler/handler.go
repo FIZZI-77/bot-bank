@@ -44,9 +44,9 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 			return err
 		}
 	case parts[0] == "/topup" && len(parts) == 2:
-		h.topUpMoney(username, amount, isCommandCorrect, bot, chatID)
+		h.persistTopUp(username, amount, isCommandCorrect, bot, chatID)
 	case parts[0] == "/send" && len(parts) == 3:
-		h.sendMoney(username, amount, parts[2], isCommandCorrect, bot, chatID)
+		h.persistTransaction(username, amount, parts[2], isCommandCorrect, bot, chatID)
 	case parts[0] == "/balance" && len(parts) == 1:
 		h.takeBalanceMessage(bot, chatID, username)
 	default:

@@ -6,12 +6,12 @@ import (
 )
 
 type TopUpMoney interface {
-	TopUpMoney(username string, amount float64) error
+	PersistTopUp(username string, amount float64) error
 	GetTotalTopupAmount(username string) (float64, error)
 }
 
 type Transaction interface {
-	SendMoney(username string, amount float64, recipient string) error
+	PersistTransaction(username string, amount float64, recipient string) error
 	IsEnoughMoney(amount, balance float64) bool
 	GetTotalTransactionAmount(username string) (float64, error)
 }
@@ -21,8 +21,8 @@ type BotActions interface {
 }
 
 type UserActions interface {
-	IsUserExists(username string) (bool, error)
-	AddUser(username string, tgID int64) error
+	UserExistsByUsername(username string) (bool, error)
+	PersistUser(username string, tgID int64) error
 }
 
 type Balance interface {

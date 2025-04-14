@@ -14,18 +14,18 @@ func NewTopUpService(repo repository.TopUpMoneyRepo, actionRepo repository.UserA
 	return &TopUpService{repo: repo, actionRepo: actionRepo}
 }
 
-func (c *TopUpService) TopUpMoney(username string, amount float64) error {
+func (c *TopUpService) PersistTopUp(username string, amount float64) error {
 
-	senderID, err := c.actionRepo.TakeUserTgID(username)
+	senderID, err := c.actionRepo.GetUserTgIDByUsername(username)
 	if err != nil {
 		return fmt.Errorf("top-up-service : TopUpMoney() : take user tgID %s failed: %v", username, err)
 	}
 
-	return c.repo.TopUpMoney(senderID, amount)
+	return c.repo.PersistTopUp(senderID, amount)
 }
 
 func (c *TopUpService) GetTotalTopupAmount(username string) (float64, error) {
-	senderID, err := c.actionRepo.TakeUserTgID(username)
+	senderID, err := c.actionRepo.GetUserTgIDByUsername(username)
 	if err != nil {
 		return 0, fmt.Errorf("top-up-service : GetTotalTopupAmount() : take user tgID %s failed: %v", username, err)
 	}

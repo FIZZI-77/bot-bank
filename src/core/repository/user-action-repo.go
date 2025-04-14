@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 )
 
@@ -15,34 +14,35 @@ func NewUserActionPostgres(db *sql.DB) *UserActionPostgres {
 
 }
 
-func (c *UserActionPostgres) IsUserExists(username string) (bool, error) {
+func (c *UserActionPostgres) UserExistsByUsername(username string) (bool, error) {
 
-	const isExistsQuery = `SELECT 1 FROM users WHERE username=$1`
-	var exists int
+	const isExistsQuery = `SELECT EXISTS (SELECT 1 FROM users WHERE username=$1)`
+	var exists bool
 	err := c.db.QueryRow(isExistsQuery, username).Scan(&exists)
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, fmt.Errorf("user-action-repo: IsUserExists() : user not exists: %s", username)
-	}
 	if err != nil {
-		return false, fmt.Errorf("user-action-repo: IsUserExists() : cant't check is user exist: %v", err)
+		return false, fmt.Errorf("user-action-repo: UserExistsByUsername() : cant't check is user exist: %v", err)
+	}
+
+	if !exists {
+		return false, fmt.Errorf("user-action-repo: UserExistsByUsername() : user not exists: %s", username)
 	}
 
 	return true, nil
 }
-func (c *UserActionPostgres) TakeUserTgID(username string) (int64, error) {
+func (c *UserActionPostgres) GetUserTgIDByUsername(username string) (int64, error) {
 	var telegramID int64
 	const getTgIDQuery = `SELECT telegram_id FROM users WHERE username=$1`
 	err := c.db.QueryRow(getTgIDQuery, username).Scan(&telegramID)
 	if err != nil {
-		return 0, fmt.Errorf("user-action-repo: TakeUserTgID() : cant' get user tgID: %v", err)
+		return 0, fmt.Errorf("user-action-repo: GetUserTgIDByUsername() : cant' get user tgID: %v", err)
 
 	}
 
 	return telegramID, nil
 }
 
-func (c *UserActionPostgres) AddUser(username, userid string, tgID int64) error {
+func (c *UserActionPostgres) PersistUser(username, userid string, tgID int64) error {
 
 	tx, err := c.db.Begin()
 	if err != nil {
@@ -53,9 +53,9 @@ func (c *UserActionPostgres) AddUser(username, userid string, tgID int64) error 
 
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
-			return fmt.Errorf("user-action-repo: AddUser() : cant't do rollback table users: %v", err)
+			return fmt.Errorf("user-action-repo: PersistUser() : cant't do rollback table users: %v", err)
 		}
-		return fmt.Errorf("user-action-repo: AddUser() : cant't add user: %s", err)
+		return fmt.Errorf("user-action-repo: PersistUser() : cant't add user: %s", err)
 	}
 
 	return tx.Commit()

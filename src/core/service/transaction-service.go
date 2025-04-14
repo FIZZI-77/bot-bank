@@ -26,29 +26,29 @@ func (c *TransactionService) IsEnoughMoney(amount, balance float64) bool {
 	return true
 }
 
-func (c *TransactionService) SendMoney(username string, amount float64, recipient string) error {
-	recipientTgID, err := c.actionRepo.TakeUserTgID(recipient)
-	userTgID, err := c.actionRepo.TakeUserTgID(username)
+func (c *TransactionService) PersistTransaction(username string, amount float64, recipient string) error {
+	recipientTgID, err := c.actionRepo.GetUserTgIDByUsername(recipient)
+	userTgID, err := c.actionRepo.GetUserTgIDByUsername(username)
 	if err != nil {
-		return fmt.Errorf("transaction-service : SendMoney() :take user tgID %s failed: %v", username, err)
+		return fmt.Errorf("transaction-service : PersistTransaction() :take user tgID %s failed: %v", username, err)
 	}
 
 	balance, err := c.balance.TakeTotalBalance(username)
 
 	if err != nil {
-		return fmt.Errorf("transaction-service: SendMoney : error taking balance: %v", err)
+		return fmt.Errorf("transaction-service: PersistTransaction : error taking balance: %v", err)
 	}
 
 	if !c.IsEnoughMoney(amount, balance) {
-		return fmt.Errorf("transaction-service : SendMoney() : you have not enough money on your balance")
+		return fmt.Errorf("transaction-service : PersistTransaction() : you have not enough money on your balance")
 
 	}
-	return c.repo.SendMoney(userTgID, amount, recipientTgID)
+	return c.repo.PersistTransaction(userTgID, amount, recipientTgID)
 }
 
 func (c *TransactionService) GetTotalTransactionAmount(username string) (float64, error) {
 	var totalAmount float64
-	senderID, err := c.actionRepo.TakeUserTgID(username)
+	senderID, err := c.actionRepo.GetUserTgIDByUsername(username)
 	if err != nil {
 		return 0, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : take user tgID %s failed: %v", username, err)
 	}

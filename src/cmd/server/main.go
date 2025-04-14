@@ -39,6 +39,10 @@ func main() {
 
 	botToken := os.Getenv("TOKEN")
 
+	if err != nil {
+		log.Fatalf("Ошибка при установке команд: %s", err.Error())
+	}
+
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 
 	params := &telego.DeleteWebhookParams{}

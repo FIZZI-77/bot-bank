@@ -27,7 +27,7 @@ func (h *Handler) isCommandCorrect(command string, parts []string, amount float6
 }
 
 func (h *Handler) isRecipientCorrect(recipient string, bot *telego.Bot, chatID int64) bool {
-	isExist, err := h.service.IsUserExists(recipient)
+	isExist, err := h.service.UserExistsByUsername(recipient)
 	if err != nil {
 		logrus.Errorf("middleware: isRecipientCorrect() : error checking user existence: %v", err.Error())
 	}

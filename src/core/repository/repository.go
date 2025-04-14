@@ -5,20 +5,20 @@ import (
 )
 
 type TopUpMoneyRepo interface {
-	TopUpMoney(userId int64, amount float64) error
+	PersistTopUp(userId int64, amount float64) error
 	GetTotalTopupAmount(userTgID int64) (float64, error)
 }
 
 type TransactionRepo interface {
-	SendMoney(username int64, amount float64, recipient int64) error
+	PersistTransaction(username int64, amount float64, recipient int64) error
 	GetTotalSentAmount(userTgID int64) (float64, error)
 	GetTotalReceivedAmount(userTgID int64) (float64, error)
 }
 
 type UserActionsRepo interface {
-	IsUserExists(username string) (bool, error)
-	AddUser(username, userid string, tgID int64) error
-	TakeUserTgID(username string) (int64, error)
+	UserExistsByUsername(username string) (bool, error)
+	PersistUser(username, userid string, tgID int64) error
+	GetUserTgIDByUsername(username string) (int64, error)
 }
 
 type Repository struct {
