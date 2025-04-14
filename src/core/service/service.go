@@ -41,7 +41,7 @@ func NewService(repos *repository.Repository) *Service {
 	transactionService := NewTransactionService(
 		repos.TransactionRepo,
 		repos.UserActionsRepo,
-		nil, // временно nil
+		nil,
 	)
 
 	topUpService := NewTopUpService(
