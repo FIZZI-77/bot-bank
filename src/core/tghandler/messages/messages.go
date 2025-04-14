@@ -5,7 +5,7 @@ const MsgHelp = `Я бот для транзакций, а могу перево
 Вот мои команды:
 
 /send - перевести пользователю
-/top-up - пополнить баланс`
+/topup - пополнить баланс`
 
 const MsgHello = "Hi there! 👾\n\n" + MsgHelp
 
