@@ -2,18 +2,19 @@ package service
 
 import (
 	"github.com/mymmrac/telego"
+	"tg_transaction/src/core/models"
 	"tg_transaction/src/core/repository"
 )
 
 type TopUpMoney interface {
-	PersistTopUp(username string, amount float64) error
-	GetTotalTopupAmount(username string) (float64, error)
+	PersistTopUp(username string, amount float64, cur models.CurrencyEnum) error
+	GetTotalTopupAmount(username string) (models.Balance, error)
 }
 
 type Transaction interface {
-	PersistTransaction(username string, amount float64, recipient string) error
-	IsEnoughMoney(amount, balance float64) bool
-	GetTotalTransactionAmount(username string) (float64, error)
+	PersistTransaction(username string, amount float64, recipient string, cur models.CurrencyEnum) (int, error)
+	IsEnoughMoney(amount float64, balance models.Balance, cur models.CurrencyEnum) bool
+	GetTotalTransactionAmount(username string) (models.Balance, error)
 }
 
 type BotActions interface {
@@ -26,7 +27,7 @@ type UserActions interface {
 }
 
 type Balance interface {
-	TakeTotalBalance(username string) (float64, error)
+	TakeTotalBalance(username string) (models.Balance, error)
 }
 type Service struct {
 	TopUpMoney

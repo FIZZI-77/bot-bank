@@ -60,3 +60,14 @@ func (c *UserActionPostgres) PersistUser(username, userid string, tgID int64) er
 
 	return tx.Commit()
 }
+
+func (c *UserActionPostgres) GetUUIDByUsername(username string) (string, error) {
+	var uuid string
+	const getUUIDByUsernameQuery = `SELECT id FROM users WHERE username=$1`
+
+	err := c.db.QueryRow(getUUIDByUsernameQuery, username).Scan(&uuid)
+	if err != nil {
+		return "", fmt.Errorf("user-action-repo: GetUserUUIDByUsername() : cant't get uuid: %v", err)
+	}
+	return uuid, nil
+}

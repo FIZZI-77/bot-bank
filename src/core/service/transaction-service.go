@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+	"github.com/google/uuid"
+	"tg_transaction/src/core/models"
 	"tg_transaction/src/core/repository"
 )
 
@@ -19,50 +21,60 @@ func (c *TransactionService) SetBalance(balance Balance) {
 	c.balance = balance
 }
 
-func (c *TransactionService) IsEnoughMoney(amount, balance float64) bool {
-	if amount > balance {
+func (c *TransactionService) IsEnoughMoney(amount float64, balance models.Balance, cur models.CurrencyEnum) bool {
+	if amount > balance[cur] {
 		return false
 	}
 	return true
 }
 
-func (c *TransactionService) PersistTransaction(username string, amount float64, recipient string) error {
+func (c *TransactionService) PersistTransaction(username string, amount float64, recipient string, cur models.CurrencyEnum) (int, error) {
+	transactionId := uuid.New().String()
 	recipientTgID, err := c.actionRepo.GetUserTgIDByUsername(recipient)
-	userTgID, err := c.actionRepo.GetUserTgIDByUsername(username)
+	userId, err := c.actionRepo.GetUUIDByUsername(username)
 	if err != nil {
-		return fmt.Errorf("transaction-service : PersistTransaction() :take user tgID %s failed: %v", username, err)
+		return 1, fmt.Errorf("transaction-service : PersistTransaction() :take user uuid %s failed: %v", username, err)
 	}
 
 	balance, err := c.balance.TakeTotalBalance(username)
 
 	if err != nil {
-		return fmt.Errorf("transaction-service: PersistTransaction : error taking balance: %v", err)
+		return 1, fmt.Errorf("transaction-service: PersistTransaction : error taking balance: %v", err)
 	}
 
-	if !c.IsEnoughMoney(amount, balance) {
-		return fmt.Errorf("transaction-service : PersistTransaction() : you have not enough money on your balance")
+	if !c.IsEnoughMoney(amount, balance, cur) {
+		return 2, fmt.Errorf("transaction-service : PersistTransaction() : you have not enough money on your balance")
 
 	}
-	return c.repo.PersistTransaction(userTgID, amount, recipientTgID)
+	return 0, c.repo.PersistTransaction(userId, amount, recipientTgID, transactionId, cur)
 }
 
-func (c *TransactionService) GetTotalTransactionAmount(username string) (float64, error) {
-	var totalAmount float64
-	senderID, err := c.actionRepo.GetUserTgIDByUsername(username)
+func (c *TransactionService) GetTotalTransactionAmount(username string) (models.Balance, error) {
+	totalAmount := make(models.Balance)
+	senderID, err := c.actionRepo.GetUUIDByUsername(username)
 	if err != nil {
-		return 0, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : take user tgID %s failed: %v", username, err)
+		return models.Balance{}, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : take user uuid %s failed: %v", username, err)
 	}
 
-	totalReceivedAmount, err := c.repo.GetTotalReceivedAmount(senderID)
+	recipientID, err := c.actionRepo.GetUserTgIDByUsername(username)
 	if err != nil {
-		return 0, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : GetTotalReceivedAmount failed: %v", err)
+		return models.Balance{}, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : take user tgID %s failed: %v", username, err)
+	}
+	totalReceivedAmount, err := c.repo.GetTotalReceivedAmount(recipientID)
+	if err != nil {
+		return models.Balance{}, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : GetTotalReceivedAmount failed: %v", err)
 	}
 	totalSentAmount, err := c.repo.GetTotalSentAmount(senderID)
 	if err != nil {
-		return 0, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : GetTotalSentAmount failed: %v", err)
+		return models.Balance{}, fmt.Errorf("transaction-service : GetTotalTransactionAmount() : GetTotalSentAmount failed: %v", err)
 	}
 
-	totalAmount = totalReceivedAmount - totalSentAmount
+	for currency, amount := range totalReceivedAmount {
+		totalAmount[currency] = amount
+	}
 
+	for currency, amount := range totalSentAmount {
+		totalAmount[currency] -= amount
+	}
 	return totalAmount, nil
 }

@@ -10,16 +10,16 @@ import (
 
 func (h *Handler) isCommandCorrect(command string, parts []string, amount float64) bool {
 
-	if ((command == "/send" && len(parts) == 3) || (command == "/topup" && len(parts) == 2)) && amount <= 0 {
+	if ((command == "/send" && len(parts) == 4) || (command == "/topup" && len(parts) == 3)) && amount <= 0 {
 		logrus.Error("middleware: isCommandCorrect() : wrong amount for command")
 		return false
 	}
-	if command == "/send" && len(parts) != 3 {
+	if command == "/send" && len(parts) != 3 && len(parts) != 4 {
 		logrus.Error("middleware: isCommandCorrect() : wrong count arguments in command  /send")
 		return false
 	}
 
-	if command == "/topup" && len(parts) != 2 {
+	if command == "/topup" && len(parts) != 2 && len(parts) != 3 {
 		logrus.Error("middleware: isCommandCorrect() : wrong count arguments in command  /top-up")
 		return false
 	}

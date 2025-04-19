@@ -2,9 +2,11 @@ package tghandler
 
 import (
 	"github.com/mymmrac/telego"
+	"github.com/sirupsen/logrus"
 	"log"
 	"strconv"
 	"strings"
+	"tg_transaction/src/core/models"
 	"tg_transaction/src/core/service"
 )
 
@@ -31,6 +33,17 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 			log.Fatalf("Handler : HandleMessage(): Error converting amount to int: %v", err)
 		}
 	}
+
+	var cur models.CurrencyEnum
+	if len(parts) > 2 {
+		cur, err = ParseCurrencyToEnum(strings.ToUpper(parts[2]))
+
+		if err != nil {
+			logrus.Error("Handler : HandleMessage(): Error converting currency to enum: %v", err)
+			h.sendErrorCurrencyMessage(bot, chatID)
+			return
+		}
+	}
 	isCommandCorrect := h.isCommandCorrect(parts[0], parts, amount)
 
 	switch {
@@ -43,12 +56,14 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 		if err := h.sendHelpMessage(bot, chatID); err != nil {
 			return err
 		}
-	case parts[0] == "/topup" && len(parts) == 2:
-		h.persistTopUp(username, amount, isCommandCorrect, bot, chatID)
-	case parts[0] == "/send" && len(parts) == 3:
-		h.persistTransaction(username, amount, parts[2], isCommandCorrect, bot, chatID)
+	case parts[0] == "/topup" && len(parts) == 3:
+		h.persistTopUp(username, amount, cur, isCommandCorrect, bot, chatID)
+	case parts[0] == "/send" && len(parts) == 4:
+		h.persistTransaction(username, amount, parts[3], isCommandCorrect, bot, chatID, cur)
 	case parts[0] == "/balance" && len(parts) == 1:
 		h.takeBalanceMessage(bot, chatID, username)
+	case parts[0] == "/topup" && len(parts) == 2:
+		h.sendErrorCurrencyMessage(bot, chatID)
 	default:
 		h.sendUnknownMessage(bot, chatID)
 	}

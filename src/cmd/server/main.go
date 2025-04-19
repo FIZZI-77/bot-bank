@@ -39,10 +39,6 @@ func main() {
 
 	botToken := os.Getenv("TOKEN")
 
-	if err != nil {
-		log.Fatalf("Ошибка при установке команд: %s", err.Error())
-	}
-
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 
 	params := &telego.DeleteWebhookParams{}
@@ -72,7 +68,7 @@ func main() {
 		for _, update := range updates {
 
 			log.Printf("Update come: %+v\n", update)
-			if update.Message.Text != "" {
+			if update.Message != nil && update.Message.Text != "" {
 				err = handler.HandleMessage(bot, update.Message)
 				if err != nil {
 					logrus.Errorf("Message processing error: %v", err)
