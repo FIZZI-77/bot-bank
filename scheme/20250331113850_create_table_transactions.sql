@@ -3,7 +3,7 @@
 
 CREATE TABLE transactions(
     id UUID PRIMARY KEY,
-    sender_uuid UUID NOT NULL,
+    sender_id UUID NOT NULL,
     amount decimal(18,2)  NOT NULL,
     currency currency NOT NULL ,
     recipient_tg_id BIGINT

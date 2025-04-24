@@ -1,3 +1,5 @@
 package models
 
-type Balance map[CurrencyEnum]float64
+import "github.com/shopspring/decimal"
+
+type Balance map[CurrencyEnum]decimal.Decimal

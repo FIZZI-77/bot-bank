@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"tg_transaction/src/core/models"
+	"github.com/shopspring/decimal"
+	"tgtransaction/src/core/models"
 )
 
 type TransactionPostgres struct {
@@ -15,16 +17,13 @@ func NewTransactionPostgres(db *sql.DB) *TransactionPostgres {
 	return &TransactionPostgres{db: db}
 }
 
-func (c *TransactionPostgres) PersistTransaction(userId string, amount float64, recipient int64, transactionId string, cur models.CurrencyEnum) error {
+func (c *TransactionPostgres) PersistTransaction(model *models.TransactionModel) error {
 	var currency string
-	currency, err := FromCurrencyEnum(cur)
-	if err != nil {
-		return err
-	}
+	currency = FromCurrencyEnum(model.Cur)
 
-	const sendQuery = "INSERT INTO transactions (id,sender_uuid,amount,currency,recipient_tg_id) VALUES ($1,$2,$3,$4,$5)"
+	const sendQuery = "INSERT INTO transactions (id, sender_id, amount, currency, recipient_tg_id) VALUES ($1, $2, $3, $4, $5)"
 
-	_, err = c.db.Exec(sendQuery, transactionId, userId, amount, currency, recipient)
+	_, err := c.db.Exec(sendQuery, model.TransactionId, model.UserId, model.Amount, currency, model.Recipient)
 	if err != nil {
 
 		return fmt.Errorf("run sql sendQuery: %w", err)
@@ -32,43 +31,46 @@ func (c *TransactionPostgres) PersistTransaction(userId string, amount float64, 
 	return nil
 }
 
-func (c *TransactionPostgres) GetTotalSentAmount(userID string) (models.Balance, error) {
+func (c *TransactionPostgres) GetTotalSentAmount(ctx context.Context, userID string) (_ *models.Balance, err error) {
 
 	const getTotalSendQuery = `SELECT
     	currency,
-		COALESCE(SUM(CASE WHEN sender_uuid = $1 THEN amount ELSE 0 END ),0)
+		COALESCE(SUM(CASE WHEN sender_id = $1 THEN amount ELSE 0 END ),0)
 	FROM transactions
 	GROUP BY currency
 `
-	rows, err := c.db.Query(getTotalSendQuery, userID)
+	rows, err := c.db.QueryContext(ctx, getTotalSendQuery, userID)
 	if err != nil {
-		return models.Balance{}, fmt.Errorf("run sql getTotalSendQuery: %w", err)
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return &models.Balance{}, fmt.Errorf("getTotalSendQuery timed out: %w", err)
+		}
+		return &models.Balance{}, fmt.Errorf("run sql getTotalSendQuery: %w", err)
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
-			logrus.Error("Error rows.Close(): %v", err)
+		if closeErr := rows.Close(); err != nil {
+			err = errors.Join(err, fmt.Errorf("close rows %w", closeErr))
 		}
 	}()
 
-	balance := make(models.Balance)
+	balance := &models.Balance{}
 	for rows.Next() {
 		var currency string
-		var amount float64
+		var amount decimal.Decimal
 		if err := rows.Scan(&currency, &amount); err != nil {
-			return models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
+			return &models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
 		}
 		curEnum, err := ParseCurrencyToEnum(currency)
 		if err != nil {
-			return models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
+			return &models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
 		}
 
-		balance[curEnum] = amount
+		(*balance)[curEnum] = amount
 	}
 	return balance, nil
 }
 
-func (c *TransactionPostgres) GetTotalReceivedAmount(userTgID int64) (models.Balance, error) {
+func (c *TransactionPostgres) GetTotalReceivedAmount(ctx context.Context, userTgID int64) (_ *models.Balance, err error) {
 
 	const getTotalReceivedQuery = `SELECT
     currency,
@@ -76,30 +78,33 @@ func (c *TransactionPostgres) GetTotalReceivedAmount(userTgID int64) (models.Bal
 	FROM transactions
 	GROUP BY currency
 `
-	rows, err := c.db.Query(getTotalReceivedQuery, userTgID)
+	rows, err := c.db.QueryContext(ctx, getTotalReceivedQuery, userTgID)
 	if err != nil {
-		return models.Balance{}, fmt.Errorf("run sql getTotalSendQuery: %w", err)
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return &models.Balance{}, fmt.Errorf("getTotalReceivedQuery timed out: %w", err)
+		}
+		return &models.Balance{}, fmt.Errorf("run sql getTotalSendQuery: %w", err)
 	}
 
 	defer func() {
-		if err = rows.Close(); err != nil {
-			logrus.Error("Error rows.Close(): %v", err)
+		if closeErr := rows.Close(); err != nil {
+			err = errors.Join(err, fmt.Errorf("close rows %w", closeErr))
 		}
 	}()
 
-	balance := make(models.Balance)
+	balance := &models.Balance{}
 	for rows.Next() {
 		var currency string
-		var amount float64
+		var amount decimal.Decimal
 		if err := rows.Scan(&currency, &amount); err != nil {
-			return models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
+			return &models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
 		}
 		curEnum, err := ParseCurrencyToEnum(currency)
 		if err != nil {
-			return models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
+			return &models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
 		}
 
-		balance[curEnum] = amount
+		(*balance)[curEnum] = amount
 	}
 	return balance, nil
 }

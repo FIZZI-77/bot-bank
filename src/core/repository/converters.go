@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"tg_transaction/src/core/models"
+	"tgtransaction/src/core/models"
 )
 
 var currencyToString = map[models.CurrencyEnum]string{
@@ -11,11 +11,18 @@ var currencyToString = map[models.CurrencyEnum]string{
 	models.EUR: "EUR",
 }
 
-func FromCurrencyEnum(e models.CurrencyEnum) (string, error) {
+func FromCurrencyEnum(e models.CurrencyEnum) string {
 	if val, ok := currencyToString[e]; ok {
-		return val, nil
+		return val
 	}
-	return "", fmt.Errorf("unknown currency enum: %d", e)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("recovered from ", r)
+		}
+	}()
+
+	panic(fmt.Sprintf("unknown currency enum: %d", e))
+
 }
 
 var stringToCurrency = map[string]models.CurrencyEnum{

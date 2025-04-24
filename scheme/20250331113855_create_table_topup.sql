@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE topup(
+CREATE TABLE top_up(
     id UUID PRIMARY KEY,
     user_telegram_id BIGINT NOT NULL,
     amount decimal(18,2)  NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE topup(
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE topup CASCADE;
+DROP TABLE top_up CASCADE;
 -- +goose StatementEnd

@@ -1,11 +1,12 @@
 package tghandler
 
 import (
+	"context"
 	"fmt"
 	"github.com/mymmrac/telego"
 	"github.com/sirupsen/logrus"
 	"strings"
-	"tg_transaction/src/core/tghandler/messages"
+	"tgtransaction/src/core/tghandler/messages"
 )
 
 func (h *Handler) sendStartMessage(bot *telego.Bot, chatID int64) error {
@@ -31,15 +32,22 @@ func (h *Handler) sendUnknownMessage(bot *telego.Bot, chatID int64) {
 	}
 }
 
-func (h *Handler) takeBalanceMessage(bot *telego.Bot, chatID int64, username string) {
-	balance := h.takeBalance(username)
+func (h *Handler) takeBalanceMessage(ctx context.Context, bot *telego.Bot, chatID int64, username string) {
+	balance, err := h.service.TakeTotalBalance(ctx, username)
+	if err != nil {
+		logrus.Errorf("bank-operation hendler: takeBalance() : Error take balance: %s", err.Error())
+
+	}
+	if balance == nil {
+		logrus.Errorf("bank-operation hendler: takeBalance() : balance is nil")
+	}
 	var parts []string
-	for currency, amount := range balance {
-		part := fmt.Sprintf("%s: %.2f", currencyToString[currency], amount)
+	for currency, amount := range *balance {
+		part := fmt.Sprintf("%s %s", amount.Round(2).String(), currencyToString[currency])
 		parts = append(parts, part)
 	}
 	balanceStr := strings.Join(parts, "\n")
-	err := h.service.SendMessage(bot, chatID, messages.MsgBalance+"\n"+balanceStr)
+	err = h.service.SendMessage(bot, chatID, messages.MsgBalance+"\n"+balanceStr)
 	if err != nil {
 		logrus.Errorf("send-any-messages handler : takeBalanceMessage(): cant't send balance message %v", err)
 	}

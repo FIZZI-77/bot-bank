@@ -1,26 +1,27 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
-	"tg_transaction/src/core/models"
+	"tgtransaction/src/core/models"
 )
 
 type TopUpMoneyRepo interface {
-	PersistTopUp(userId int64, amount float64, topUpId string, cur models.CurrencyEnum) error
-	GetTotalTopupAmount(userTgID int64) (models.Balance, error)
+	PersistTopUp(model *models.TopUpModel) error
+	GetTotalTopupAmount(ctx context.Context, userTgID int64) (*models.Balance, error)
 }
 
 type TransactionRepo interface {
-	PersistTransaction(userId string, amount float64, recipient int64, transactionId string, cur models.CurrencyEnum) error
-	GetTotalSentAmount(userTgID string) (models.Balance, error)
-	GetTotalReceivedAmount(userTgID int64) (models.Balance, error)
+	PersistTransaction(model *models.TransactionModel) error
+	GetTotalSentAmount(ctx context.Context, userTgID string) (*models.Balance, error)
+	GetTotalReceivedAmount(ctx context.Context, userTgID int64) (*models.Balance, error)
 }
 
 type UserActionsRepo interface {
 	UserExistsByUsername(username string) (bool, error)
 	PersistUser(username, userid string, tgID int64) error
-	GetUserTgIDByUsername(username string) (int64, error)
-	GetUUIDByUsername(username string) (string, error)
+	GetUserTgIDByUsername(ctx context.Context, username string) (int64, error)
+	GetIDByUsername(ctx context.Context, username string) (string, error)
 }
 
 type Repository struct {

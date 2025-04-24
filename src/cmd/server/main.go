@@ -8,10 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"log"
 	"os"
-	"tg_transaction/src/core/repository"
-	"tg_transaction/src/core/service"
-	"tg_transaction/src/core/tghandler"
-	"tg_transaction/src/pkg/pgxhelper"
+	"tgtransaction/src/core/repository"
+	"tgtransaction/src/core/service"
+	"tgtransaction/src/core/tghandler"
+	"tgtransaction/src/pkg/pgxhelper"
 )
 
 func main() {

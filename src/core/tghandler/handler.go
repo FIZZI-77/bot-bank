@@ -1,13 +1,15 @@
 package tghandler
 
 import (
+	"context"
 	"github.com/mymmrac/telego"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
 	"log"
-	"strconv"
 	"strings"
-	"tg_transaction/src/core/models"
-	"tg_transaction/src/core/service"
+	"tgtransaction/src/core/models"
+	"tgtransaction/src/core/service"
+	"time"
 )
 
 type Handler struct {
@@ -20,15 +22,18 @@ func NewHandler(service *service.Service) *Handler {
 
 func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err error) {
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	text := message.Text
 	chatID := message.Chat.ID
 	username := message.Chat.Username
 	telegramID := message.From.ID
 	parts := strings.Split(text, " ")
 
-	var amount float64
+	var amount decimal.Decimal
 	if len(parts) != 1 {
-		amount, err = strconv.ParseFloat(parts[1], 64)
+		amount, err = decimal.NewFromString(parts[1])
 		if err != nil {
 			log.Fatalf("Handler : HandleMessage(): Error converting amount to int: %v", err)
 		}
@@ -57,11 +62,11 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 			return err
 		}
 	case parts[0] == "/topup" && len(parts) == 3:
-		h.persistTopUp(username, amount, cur, isCommandCorrect, bot, chatID)
+		h.persistTopUp(ctx, username, amount, cur, isCommandCorrect, bot, chatID)
 	case parts[0] == "/send" && len(parts) == 4:
-		h.persistTransaction(username, amount, parts[3], isCommandCorrect, bot, chatID, cur)
+		h.persistTransaction(ctx, username, amount, parts[3], isCommandCorrect, bot, chatID, cur)
 	case parts[0] == "/balance" && len(parts) == 1:
-		h.takeBalanceMessage(bot, chatID, username)
+		h.takeBalanceMessage(ctx, bot, chatID, username)
 	case parts[0] == "/topup" && len(parts) == 2:
 		h.sendErrorCurrencyMessage(bot, chatID)
 	default:

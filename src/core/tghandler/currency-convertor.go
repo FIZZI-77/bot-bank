@@ -2,7 +2,7 @@ package tghandler
 
 import (
 	"fmt"
-	"tg_transaction/src/core/models"
+	"tgtransaction/src/core/models"
 )
 
 var stringToCurrency = map[string]models.CurrencyEnum{

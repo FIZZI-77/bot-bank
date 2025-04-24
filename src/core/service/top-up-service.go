@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"tg_transaction/src/core/models"
-	"tg_transaction/src/core/repository"
+	"github.com/shopspring/decimal"
+	"tgtransaction/src/core/models"
+	"tgtransaction/src/core/repository"
 )
 
 type TopUpService struct {
@@ -16,20 +18,25 @@ func NewTopUpService(repo repository.TopUpMoneyRepo, actionRepo repository.UserA
 	return &TopUpService{repo: repo, actionRepo: actionRepo}
 }
 
-func (c *TopUpService) PersistTopUp(username string, amount float64, cur models.CurrencyEnum) error {
+func (c *TopUpService) PersistTopUp(ctx context.Context, username string, amount decimal.Decimal, cur models.CurrencyEnum) error {
 	topUpId := uuid.New().String()
-	senderID, err := c.actionRepo.GetUserTgIDByUsername(username)
+	senderID, err := c.actionRepo.GetUserTgIDByUsername(ctx, username)
 	if err != nil {
 		return fmt.Errorf("top-up-service : TopUpMoney() : take user tgID %s failed: %v", username, err)
 	}
-
-	return c.repo.PersistTopUp(senderID, amount, topUpId, cur)
+	topUp := &models.TopUpModel{
+		UserId:  senderID,
+		TopUpId: topUpId,
+		Amount:  amount,
+		Cur:     cur,
+	}
+	return c.repo.PersistTopUp(topUp)
 }
 
-func (c *TopUpService) GetTotalTopupAmount(username string) (models.Balance, error) {
-	senderID, err := c.actionRepo.GetUserTgIDByUsername(username)
+func (c *TopUpService) GetTotalTopupAmount(ctx context.Context, username string) (*models.Balance, error) {
+	senderID, err := c.actionRepo.GetUserTgIDByUsername(ctx, username)
 	if err != nil {
-		return models.Balance{}, fmt.Errorf("top-up-service : GetTotalTopupAmount() : take user tgID %s failed: %v", username, err)
+		return &models.Balance{}, fmt.Errorf("top-up-service : GetTotalTopupAmount() : take user tgID %s failed: %v", username, err)
 	}
-	return c.repo.GetTotalTopupAmount(senderID)
+	return c.repo.GetTotalTopupAmount(ctx, senderID)
 }

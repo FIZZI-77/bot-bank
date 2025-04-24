@@ -1,13 +1,16 @@
 package tghandler
 
 import (
+	"context"
+	"errors"
 	"github.com/mymmrac/telego"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
-	"tg_transaction/src/core/models"
-	"tg_transaction/src/core/tghandler/messages"
+	"tgtransaction/src/core/models"
+	"tgtransaction/src/core/tghandler/messages"
 )
 
-func (h *Handler) persistTransaction(username string, amount float64, recipient string, isCommandCorrect bool, bot *telego.Bot, chatID int64, cur models.CurrencyEnum) {
+func (h *Handler) persistTransaction(ctx context.Context, username string, amount decimal.Decimal, recipient string, isCommandCorrect bool, bot *telego.Bot, chatID int64, cur models.CurrencyEnum) {
 
 	if !h.isRecipientCorrect(recipient, bot, chatID) {
 		return
@@ -15,9 +18,9 @@ func (h *Handler) persistTransaction(username string, amount float64, recipient 
 	if !isCommandCorrect {
 		return
 	}
-	errCode, err := h.service.Transaction.PersistTransaction(username, amount, recipient, cur)
-
-	if errCode == 2 {
+	err := h.service.Transaction.PersistTransaction(ctx, username, amount, recipient, cur)
+	var notEnoughMoneyErr *models.NotEnoughMoneyError
+	if errors.As(err, &notEnoughMoneyErr) {
 		logrus.Errorf("bank-operation hendler: persistTransaction() :cant't send money: %s", err)
 		if sendNotEnoughBalance := h.service.SendMessage(bot, chatID, messages.MsgNotEnoughMoney); sendNotEnoughBalance != nil {
 			logrus.Errorf("bank-operation hendler: persistTransaction(): cant't send error Send  message %v", sendNotEnoughBalance)
@@ -39,11 +42,12 @@ func (h *Handler) persistTransaction(username string, amount float64, recipient 
 	}
 }
 
-func (h *Handler) persistTopUp(username string, amount float64, cur models.CurrencyEnum, isCommandCorrect bool, bot *telego.Bot, chatID int64) {
+func (h *Handler) persistTopUp(ctx context.Context, username string, amount decimal.Decimal, cur models.CurrencyEnum, isCommandCorrect bool, bot *telego.Bot, chatID int64) {
 	if !isCommandCorrect {
 		return
 	}
-	err := h.service.TopUpMoney.PersistTopUp(username, amount, cur)
+
+	err := h.service.TopUpMoney.PersistTopUp(ctx, username, amount, cur)
 	if err != nil {
 		logrus.Errorf("bank-operation hendler: topUpMoney() : can't top up balance: %s", err.Error())
 		if err = h.service.SendMessage(bot, chatID, messages.MsgErrorTopUp); err != nil {
@@ -54,13 +58,4 @@ func (h *Handler) persistTopUp(username string, amount float64, cur models.Curre
 	if err = h.service.SendMessage(bot, chatID, messages.MsgTopUpMoney); err != nil {
 		logrus.Errorf("bank-operation hendler: topUpMoney() : cant't send TopUp  message %v", err)
 	}
-}
-
-func (h *Handler) takeBalance(username string) models.Balance {
-	balance, err := h.service.TakeTotalBalance(username)
-	if err != nil {
-		logrus.Errorf("bank-operation hendler: takeBalance() : Error take balance: %s", err.Error())
-
-	}
-	return balance
 }

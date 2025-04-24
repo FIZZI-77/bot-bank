@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -30,11 +32,14 @@ func (c *UserActionPostgres) UserExistsByUsername(username string) (bool, error)
 
 	return true, nil
 }
-func (c *UserActionPostgres) GetUserTgIDByUsername(username string) (int64, error) {
+func (c *UserActionPostgres) GetUserTgIDByUsername(ctx context.Context, username string) (int64, error) {
 	var telegramID int64
 	const getTgIDQuery = `SELECT telegram_id FROM users WHERE username=$1`
-	err := c.db.QueryRow(getTgIDQuery, username).Scan(&telegramID)
+	err := c.db.QueryRowContext(ctx, getTgIDQuery, username).Scan(&telegramID)
 	if err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return 0, fmt.Errorf("getTgIDQuery timed out: %w", err)
+		}
 		return 0, fmt.Errorf("user-action-repo: GetUserTgIDByUsername() : cant' get user tgID: %v", err)
 
 	}
@@ -61,12 +66,15 @@ func (c *UserActionPostgres) PersistUser(username, userid string, tgID int64) er
 	return tx.Commit()
 }
 
-func (c *UserActionPostgres) GetUUIDByUsername(username string) (string, error) {
+func (c *UserActionPostgres) GetIDByUsername(ctx context.Context, username string) (string, error) {
 	var uuid string
 	const getUUIDByUsernameQuery = `SELECT id FROM users WHERE username=$1`
 
-	err := c.db.QueryRow(getUUIDByUsernameQuery, username).Scan(&uuid)
+	err := c.db.QueryRowContext(ctx, getUUIDByUsernameQuery, username).Scan(&uuid)
 	if err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return "", fmt.Errorf("getUUIDByUsernameQuery timed out: %w", err)
+		}
 		return "", fmt.Errorf("user-action-repo: GetUserUUIDByUsername() : cant't get uuid: %v", err)
 	}
 	return uuid, nil

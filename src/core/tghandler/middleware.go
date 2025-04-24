@@ -2,15 +2,16 @@ package tghandler
 
 import (
 	"github.com/mymmrac/telego"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
-	"tg_transaction/src/core/tghandler/messages"
+	"tgtransaction/src/core/tghandler/messages"
 )
 
 // Проверка что сумма положительна
 
-func (h *Handler) isCommandCorrect(command string, parts []string, amount float64) bool {
+func (h *Handler) isCommandCorrect(command string, parts []string, amount decimal.Decimal) bool {
 
-	if ((command == "/send" && len(parts) == 4) || (command == "/topup" && len(parts) == 3)) && amount <= 0 {
+	if ((command == "/send" && len(parts) == 4) || (command == "/topup" && len(parts) == 3)) && amount.LessThanOrEqual(decimal.NewFromInt(0)) {
 		logrus.Error("middleware: isCommandCorrect() : wrong amount for command")
 		return false
 	}

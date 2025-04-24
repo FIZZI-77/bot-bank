@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/google/uuid"
-	"tg_transaction/src/core/repository"
+	"tgtransaction/src/core/repository"
 )
 
 type UserActionService struct {

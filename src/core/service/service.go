@@ -1,20 +1,22 @@
 package service
 
 import (
+	"context"
 	"github.com/mymmrac/telego"
-	"tg_transaction/src/core/models"
-	"tg_transaction/src/core/repository"
+	"github.com/shopspring/decimal"
+	"tgtransaction/src/core/models"
+	"tgtransaction/src/core/repository"
 )
 
 type TopUpMoney interface {
-	PersistTopUp(username string, amount float64, cur models.CurrencyEnum) error
-	GetTotalTopupAmount(username string) (models.Balance, error)
+	PersistTopUp(ctx context.Context, username string, amount decimal.Decimal, cur models.CurrencyEnum) error
+	GetTotalTopupAmount(ctx context.Context, username string) (*models.Balance, error)
 }
 
 type Transaction interface {
-	PersistTransaction(username string, amount float64, recipient string, cur models.CurrencyEnum) (int, error)
-	IsEnoughMoney(amount float64, balance models.Balance, cur models.CurrencyEnum) bool
-	GetTotalTransactionAmount(username string) (models.Balance, error)
+	PersistTransaction(ctx context.Context, username string, amount decimal.Decimal, recipient string, cur models.CurrencyEnum) error
+	IsEnoughMoney(amount decimal.Decimal, balance models.Balance, cur models.CurrencyEnum) bool
+	GetTotalTransactionAmount(ctx context.Context, username string) (*models.Balance, error)
 }
 
 type BotActions interface {
@@ -27,7 +29,7 @@ type UserActions interface {
 }
 
 type Balance interface {
-	TakeTotalBalance(username string) (models.Balance, error)
+	TakeTotalBalance(ctx context.Context, username string) (*models.Balance, error)
 }
 type Service struct {
 	TopUpMoney
