@@ -19,7 +19,7 @@ func NewTopUpService(repo repository.TopUpMoneyRepo, actionRepo repository.UserA
 }
 
 func (c *TopUpService) PersistTopUp(ctx context.Context, username string, amount decimal.Decimal, cur models.CurrencyEnum) error {
-	topUpId := uuid.New().String()
+	topUpId := uuid.New()
 	senderID, err := c.actionRepo.GetUserTgIDByUsername(ctx, username)
 	if err != nil {
 		return fmt.Errorf("top-up-service : TopUpMoney() : take user tgID %s failed: %v", username, err)
@@ -30,13 +30,13 @@ func (c *TopUpService) PersistTopUp(ctx context.Context, username string, amount
 		Amount:  amount,
 		Cur:     cur,
 	}
-	return c.repo.PersistTopUp(topUp)
+	return c.repo.PersistTopUp(ctx, *topUp)
 }
 
-func (c *TopUpService) GetTotalTopupAmount(ctx context.Context, username string) (*models.Balance, error) {
+func (c *TopUpService) GetTotalTopupAmount(ctx context.Context, username string) (models.Balance, error) {
 	senderID, err := c.actionRepo.GetUserTgIDByUsername(ctx, username)
 	if err != nil {
-		return &models.Balance{}, fmt.Errorf("top-up-service : GetTotalTopupAmount() : take user tgID %s failed: %v", username, err)
+		return models.Balance{}, fmt.Errorf("top-up-service : GetTotalTopupAmount() : take user tgID %s failed: %v", username, err)
 	}
 	return c.repo.GetTotalTopupAmount(ctx, senderID)
 }

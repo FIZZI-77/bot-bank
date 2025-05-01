@@ -56,7 +56,7 @@ func (h *Handler) HandleMessage(bot *telego.Bot, message *telego.Message) (err e
 		if err := h.sendStartMessage(bot, chatID); err != nil {
 			return err
 		}
-		h.addUser(username, telegramID)
+		h.addUser(ctx, username, telegramID)
 	case parts[0] == "/help" && len(parts) == 1:
 		if err := h.sendHelpMessage(bot, chatID); err != nil {
 			return err

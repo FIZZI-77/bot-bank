@@ -1,11 +1,14 @@
 package models
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+)
 
 type TransactionModel struct {
-	UserId        string
+	UserId        uuid.UUID
 	Amount        decimal.Decimal
 	Recipient     int64
-	TransactionId string
+	TransactionId uuid.UUID
 	Cur           CurrencyEnum
 }

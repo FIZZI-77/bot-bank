@@ -17,22 +17,22 @@ func NewTopUpPostgres(db *sql.DB) *TopUpPostgres {
 	return &TopUpPostgres{db: db}
 }
 
-func (c *TopUpPostgres) PersistTopUp(model *models.TopUpModel) error {
+func (c *TopUpPostgres) PersistTopUp(ctx context.Context, model models.TopUpModel) error {
 	var currency string
 	currency = FromCurrencyEnum(model.Cur)
 
 	const topUpQuery = "INSERT INTO top_up (id, user_telegram_id, amount, currency) VALUES ($1, $2, $3, $4)"
-	_, err := c.db.Exec(topUpQuery, model.TopUpId, model.UserId, model.Amount, currency)
+	_, err := c.db.ExecContext(ctx, topUpQuery, model.TopUpId, model.UserId, model.Amount, currency)
 	if err != nil {
 		return fmt.Errorf("run sql topUpQuery: %w", err)
 	}
 	return nil
 }
 
-func (c *TopUpPostgres) GetTotalTopupAmount(ctx context.Context, userTgID int64) (_ *models.Balance, err error) {
-	totalTopupAmount := &models.Balance{}
+func (c *TopUpPostgres) GetTotalTopupAmount(ctx context.Context, userTgID int64) (_ models.Balance, err error) {
+	totalTopupAmount := models.Balance{}
 	if totalTopupAmount == nil {
-		return &models.Balance{}, fmt.Errorf("totalTopupAmount nil ptr")
+		return models.Balance{}, fmt.Errorf("totalTopupAmount nil ptr")
 	}
 
 	const totalTopUpAmountQuery = `SELECT
@@ -44,9 +44,9 @@ func (c *TopUpPostgres) GetTotalTopupAmount(ctx context.Context, userTgID int64)
 	rows, err := c.db.QueryContext(ctx, totalTopUpAmountQuery, userTgID)
 	if err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return &models.Balance{}, fmt.Errorf("totalTopUpAmountQuery timed out: %w", err)
+			return models.Balance{}, fmt.Errorf("totalTopUpAmountQuery timed out: %w", err)
 		}
-		return &models.Balance{}, fmt.Errorf("run sql totalTopUpAmountQuery: %w", err)
+		return models.Balance{}, fmt.Errorf("run sql totalTopUpAmountQuery: %w", err)
 	}
 
 	defer func() {
@@ -59,14 +59,14 @@ func (c *TopUpPostgres) GetTotalTopupAmount(ctx context.Context, userTgID int64)
 		var currency string
 		var amount decimal.Decimal
 		if err := rows.Scan(&currency, &amount); err != nil {
-			return &models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
+			return models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
 		}
 		curEnum, err := ParseCurrencyToEnum(currency)
 		if err != nil {
-			return &models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
+			return models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
 		}
 
-		(*totalTopupAmount)[curEnum] = amount
+		totalTopupAmount[curEnum] = amount
 	}
 	return totalTopupAmount, nil
 }

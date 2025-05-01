@@ -1,9 +1,5 @@
 package models
 
-type NotEnoughMoneyError struct {
-	Message string
-}
+import "errors"
 
-func (e *NotEnoughMoneyError) Error() string {
-	return e.Message
-}
+var ErrNotEnoughMoney = errors.New("not enough money")

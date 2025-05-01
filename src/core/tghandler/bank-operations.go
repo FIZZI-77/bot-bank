@@ -12,15 +12,15 @@ import (
 
 func (h *Handler) persistTransaction(ctx context.Context, username string, amount decimal.Decimal, recipient string, isCommandCorrect bool, bot *telego.Bot, chatID int64, cur models.CurrencyEnum) {
 
-	if !h.isRecipientCorrect(recipient, bot, chatID) {
+	if !h.isRecipientCorrect(ctx, recipient, bot, chatID) {
 		return
 	}
 	if !isCommandCorrect {
 		return
 	}
 	err := h.service.Transaction.PersistTransaction(ctx, username, amount, recipient, cur)
-	var notEnoughMoneyErr *models.NotEnoughMoneyError
-	if errors.As(err, &notEnoughMoneyErr) {
+
+	if errors.Is(err, models.ErrNotEnoughMoney) {
 		logrus.Errorf("bank-operation hendler: persistTransaction() :cant't send money: %s", err)
 		if sendNotEnoughBalance := h.service.SendMessage(bot, chatID, messages.MsgNotEnoughMoney); sendNotEnoughBalance != nil {
 			logrus.Errorf("bank-operation hendler: persistTransaction(): cant't send error Send  message %v", sendNotEnoughBalance)

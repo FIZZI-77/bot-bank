@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 type UserActionPostgres struct {
@@ -16,11 +17,11 @@ func NewUserActionPostgres(db *sql.DB) *UserActionPostgres {
 
 }
 
-func (c *UserActionPostgres) UserExistsByUsername(username string) (bool, error) {
+func (c *UserActionPostgres) UserExistsByUsername(ctx context.Context, username string) (bool, error) {
 
 	const isExistsQuery = `SELECT EXISTS (SELECT 1 FROM users WHERE username=$1)`
 	var exists bool
-	err := c.db.QueryRow(isExistsQuery, username).Scan(&exists)
+	err := c.db.QueryRowContext(ctx, isExistsQuery, username).Scan(&exists)
 
 	if err != nil {
 		return false, fmt.Errorf("user-action-repo: UserExistsByUsername() : cant't check is user exist: %v", err)
@@ -47,14 +48,14 @@ func (c *UserActionPostgres) GetUserTgIDByUsername(ctx context.Context, username
 	return telegramID, nil
 }
 
-func (c *UserActionPostgres) PersistUser(username, userid string, tgID int64) error {
+func (c *UserActionPostgres) PersistUser(ctx context.Context, username string, userid uuid.UUID, tgID int64) error {
 
 	tx, err := c.db.Begin()
 	if err != nil {
 		return err
 	}
 	const addUserQuery = "INSERT INTO users (username,id,telegram_id) VALUES ($1,$2,$3)"
-	_, err = tx.Exec(addUserQuery, username, userid, tgID)
+	_, err = tx.ExecContext(ctx, addUserQuery, username, userid, tgID)
 
 	if err != nil {
 		if err := tx.Rollback(); err != nil {
@@ -66,16 +67,16 @@ func (c *UserActionPostgres) PersistUser(username, userid string, tgID int64) er
 	return tx.Commit()
 }
 
-func (c *UserActionPostgres) GetIDByUsername(ctx context.Context, username string) (string, error) {
-	var uuid string
+func (c *UserActionPostgres) GetIDByUsername(ctx context.Context, username string) (uuid.UUID, error) {
+	var id uuid.UUID
 	const getUUIDByUsernameQuery = `SELECT id FROM users WHERE username=$1`
 
-	err := c.db.QueryRowContext(ctx, getUUIDByUsernameQuery, username).Scan(&uuid)
+	err := c.db.QueryRowContext(ctx, getUUIDByUsernameQuery, username).Scan(&id)
 	if err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return "", fmt.Errorf("getUUIDByUsernameQuery timed out: %w", err)
+			return uuid.UUID{}, fmt.Errorf("getUUIDByUsernameQuery timed out: %w", err)
 		}
-		return "", fmt.Errorf("user-action-repo: GetUserUUIDByUsername() : cant't get uuid: %v", err)
+		return uuid.UUID{}, fmt.Errorf("user-action-repo: GetUserUUIDByUsername() : cant't get uuid: %v", err)
 	}
-	return uuid, nil
+	return id, nil
 }

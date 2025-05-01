@@ -33,7 +33,7 @@ func (h *Handler) sendUnknownMessage(bot *telego.Bot, chatID int64) {
 }
 
 func (h *Handler) takeBalanceMessage(ctx context.Context, bot *telego.Bot, chatID int64, username string) {
-	balance, err := h.service.TakeTotalBalance(ctx, username)
+	balance, err := h.service.GetTotalBalance(ctx, username)
 	if err != nil {
 		logrus.Errorf("bank-operation hendler: takeBalance() : Error take balance: %s", err.Error())
 
@@ -42,7 +42,7 @@ func (h *Handler) takeBalanceMessage(ctx context.Context, bot *telego.Bot, chatI
 		logrus.Errorf("bank-operation hendler: takeBalance() : balance is nil")
 	}
 	var parts []string
-	for currency, amount := range *balance {
+	for currency, amount := range balance {
 		part := fmt.Sprintf("%s %s", amount.Round(2).String(), currencyToString[currency])
 		parts = append(parts, part)
 	}

@@ -1,6 +1,7 @@
 package tghandler
 
 import (
+	"context"
 	"github.com/mymmrac/telego"
 	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
@@ -27,8 +28,8 @@ func (h *Handler) isCommandCorrect(command string, parts []string, amount decima
 	return true
 }
 
-func (h *Handler) isRecipientCorrect(recipient string, bot *telego.Bot, chatID int64) bool {
-	isExist, err := h.service.UserExistsByUsername(recipient)
+func (h *Handler) isRecipientCorrect(ctx context.Context, recipient string, bot *telego.Bot, chatID int64) bool {
+	isExist, err := h.service.UserExistsByUsername(ctx, recipient)
 	if err != nil {
 		logrus.Errorf("middleware: isRecipientCorrect() : error checking user existence: %v", err.Error())
 	}

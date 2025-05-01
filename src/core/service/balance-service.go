@@ -18,8 +18,8 @@ func NewBalanceService(top TopUpMoney, tr Transaction) *BalanceService {
 	}
 }
 
-func (b *BalanceService) TakeTotalBalance(ctx context.Context, username string) (*models.Balance, error) {
-	totalBalance := &models.Balance{}
+func (b *BalanceService) GetTotalBalance(ctx context.Context, username string) (models.Balance, error) {
+	totalBalance := models.Balance{}
 
 	totalTopUp, err := b.top.GetTotalTopupAmount(ctx, username)
 	if err != nil {
@@ -29,12 +29,12 @@ func (b *BalanceService) TakeTotalBalance(ctx context.Context, username string) 
 	if err != nil {
 		return totalBalance, fmt.Errorf("Balance-Service:get total transaction amount failed: %v", err)
 	}
-	for currency, amount := range *totalTopUp {
-		(*totalBalance)[currency] = amount
+	for currency, amount := range totalTopUp {
+		totalBalance[currency] = amount
 	}
 
-	for currency, amount := range *totalTransactionAmount {
-		(*totalBalance)[currency] = (*totalBalance)[currency].Add(amount)
+	for currency, amount := range totalTransactionAmount {
+		totalBalance[currency] = totalBalance[currency].Add(amount)
 	}
 	return totalBalance, nil
 }

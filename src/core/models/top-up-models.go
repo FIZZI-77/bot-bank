@@ -1,10 +1,13 @@
 package models
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+)
 
 type TopUpModel struct {
 	UserId  int64
 	Amount  decimal.Decimal
-	TopUpId string
+	TopUpId uuid.UUID
 	Cur     CurrencyEnum
 }

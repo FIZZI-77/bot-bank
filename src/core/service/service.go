@@ -10,13 +10,13 @@ import (
 
 type TopUpMoney interface {
 	PersistTopUp(ctx context.Context, username string, amount decimal.Decimal, cur models.CurrencyEnum) error
-	GetTotalTopupAmount(ctx context.Context, username string) (*models.Balance, error)
+	GetTotalTopupAmount(ctx context.Context, username string) (models.Balance, error)
 }
 
 type Transaction interface {
 	PersistTransaction(ctx context.Context, username string, amount decimal.Decimal, recipient string, cur models.CurrencyEnum) error
 	IsEnoughMoney(amount decimal.Decimal, balance models.Balance, cur models.CurrencyEnum) bool
-	GetTotalTransactionAmount(ctx context.Context, username string) (*models.Balance, error)
+	GetTotalTransactionAmount(ctx context.Context, username string) (models.Balance, error)
 }
 
 type BotActions interface {
@@ -24,12 +24,12 @@ type BotActions interface {
 }
 
 type UserActions interface {
-	UserExistsByUsername(username string) (bool, error)
-	PersistUser(username string, tgID int64) error
+	UserExistsByUsername(ctx context.Context, username string) (bool, error)
+	PersistUser(ctx context.Context, username string, tgID int64) error
 }
 
 type Balance interface {
-	TakeTotalBalance(ctx context.Context, username string) (*models.Balance, error)
+	GetTotalBalance(ctx context.Context, username string) (models.Balance, error)
 }
 type Service struct {
 	TopUpMoney
