@@ -8,6 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"log"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"tgtransaction/src/core/repository"
 	"tgtransaction/src/core/service"
 	"tgtransaction/src/core/tghandler"
@@ -41,43 +44,70 @@ func main() {
 
 	bot, err := telego.NewBot(botToken, telego.WithDefaultDebugLogger())
 
+	if err != nil {
+		log.Fatalf("can't create new bot: %s", err.Error())
+	}
+
 	params := &telego.DeleteWebhookParams{}
 	err = bot.DeleteWebhook(context.Background(), params)
-	if err != nil {
-		log.Fatalf("Ошибка при удалении webhook: %s", err.Error())
-	}
+
 	if err != nil {
 		log.Fatalf("can't start bot: %s", err.Error())
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
+	go func() {
+		<-sigs
+		cancel()
+	}()
+
+	go func() {
+		defer wg.Done()
+		tgRun(ctx, bot, handler)
+	}()
+
+	wg.Wait()
+
+}
+
+func tgRun(ctx context.Context, bot *telego.Bot, handler *tghandler.Handler) {
 
 	offset := 0
-
-	var updates []telego.Update
 	for {
-
-		updates, err = bot.GetUpdates(ctx, &telego.GetUpdatesParams{
-			Offset:  offset,
-			Timeout: 8,
-		})
-		if err != nil {
-			log.Fatalf("error take updates: %s", err.Error())
-		}
-
-		for _, update := range updates {
-
-			log.Printf("Update come: %+v\n", update)
-			if update.Message != nil && update.Message.Text != "" {
-				err = handler.HandleMessage(bot, update.Message)
-				if err != nil {
-					logrus.Errorf("Message processing error: %v", err)
-				}
+		select {
+		case <-ctx.Done():
+			log.Println("Shutting down tgRun...")
+			return
+		default:
+			updates, err := bot.GetUpdates(ctx, &telego.GetUpdatesParams{
+				Offset:  offset,
+				Timeout: 8,
+			})
+			if err != nil {
+				log.Fatalf("error take updates: %s", err.Error())
 			}
 
-			offset = update.UpdateID + 1
+			for _, update := range updates {
+
+				log.Printf("Update come: %+v\n", update)
+				if update.Message.Text != "" {
+					err = handler.HandleMessage(bot, update.Message)
+					if err != nil {
+						logrus.Errorf("Message processing error: %v", err)
+					}
+				}
+
+				offset = update.UpdateID + 1
+			}
 		}
-
 	}
-
 }
