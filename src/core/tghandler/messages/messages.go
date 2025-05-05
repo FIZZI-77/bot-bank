@@ -12,9 +12,11 @@ const MsgHello = "Hi there! 👾\n\n" + MsgHelp
 const (
 	MsgUnknownCommand = "Unknown command 🤔"
 	MsgBalance        = "Ваш баланс 💰: "
+	MsgNotEnoughMoney = "Недостаточно средств на счёте 🚫"
 	MsgTopUpMoney     = "Баланс успешно пополнен ✅"
 	MsgSendMoney      = "Деньги успешно отправлены ✅"
 	MsgErrorSend      = "Отправка денег не удалась, попробуйте снова 🚫"
 	MsgErrorTopUp     = "Не удалось пополнить баланс, попробуйте снова 🚫"
 	MsgUserNotExist   = "Операция не отправлена. Такого получателя нет в базе данных 🚫"
+	MsgErrCurrency    = "Введена неправильная валюта или данная валюта не поддерживается 🚫"
 )

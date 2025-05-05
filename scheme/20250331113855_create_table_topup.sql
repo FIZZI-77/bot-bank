@@ -1,16 +1,16 @@
 -- +goose Up
 -- +goose StatementBegin
 
-CREATE TABLE transactions_history(
-    id SERIAL PRIMARY KEY,
-    sender BIGINT NOT NULL,
+CREATE TABLE top_up(
+    id UUID PRIMARY KEY,
+    user_telegram_id BIGINT NOT NULL,
     amount decimal(18,2)  NOT NULL,
-    recipient BIGINT
+    currency currency NOT NULL
 
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE transactions_history CASCADE;
+DROP TABLE top_up CASCADE;
 -- +goose StatementEnd

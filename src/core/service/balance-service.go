@@ -1,6 +1,10 @@
 package service
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"tgtransaction/src/core/models"
+)
 
 type BalanceService struct {
 	top TopUpMoney
@@ -14,17 +18,23 @@ func NewBalanceService(top TopUpMoney, tr Transaction) *BalanceService {
 	}
 }
 
-func (b *BalanceService) TakeTotalBalance(username string) (float64, error) {
-	var totalBalance float64
+func (b *BalanceService) GetTotalBalance(ctx context.Context, username string) (models.Balance, error) {
+	totalBalance := models.Balance{}
 
-	totalTopUp, err := b.top.GetTotalTopupAmount(username)
+	totalTopUp, err := b.top.GetTotalTopupAmount(ctx, username)
 	if err != nil {
 		return totalBalance, fmt.Errorf("Balance-Service:get total topup amount failed: %v", err)
 	}
-	totalTransactionAmount, err := b.tr.GetTotalTransactionAmount(username)
+	totalTransactionAmount, err := b.tr.GetTotalTransactionAmount(ctx, username)
 	if err != nil {
 		return totalBalance, fmt.Errorf("Balance-Service:get total transaction amount failed: %v", err)
 	}
-	totalBalance = totalTopUp + totalTransactionAmount
+	for currency, amount := range totalTopUp {
+		totalBalance[currency] = amount
+	}
+
+	for currency, amount := range totalTransactionAmount {
+		totalBalance[currency] = totalBalance[currency].Add(amount)
+	}
 	return totalBalance, nil
 }

@@ -1,8 +1,13 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
+	"tgtransaction/src/core/models"
 )
 
 type TransactionPostgres struct {
@@ -13,11 +18,13 @@ func NewTransactionPostgres(db *sql.DB) *TransactionPostgres {
 	return &TransactionPostgres{db: db}
 }
 
-func (c *TransactionPostgres) PersistTransaction(username int64, amount float64, recipient int64) error {
+func (c *TransactionPostgres) PersistTransaction(ctx context.Context, model models.TransactionModel) error {
+	var currency string
+	currency = FromCurrencyEnum(model.Cur)
 
-	const sendQuery = "INSERT INTO transactions_history (sender,amount,recipient) VALUES ($1,$2,$3)"
+	const sendQuery = "INSERT INTO transactions (id, sender_id, amount, currency, recipient_tg_id) VALUES ($1, $2, $3, $4, $5)"
 
-	_, err := c.db.Exec(sendQuery, username, amount, recipient)
+	_, err := c.db.ExecContext(ctx, sendQuery, model.TransactionId, model.UserId, model.Amount, currency, model.Recipient)
 	if err != nil {
 
 		return fmt.Errorf("run sql sendQuery: %w", err)
@@ -25,33 +32,80 @@ func (c *TransactionPostgres) PersistTransaction(username int64, amount float64,
 	return nil
 }
 
-func (c *TransactionPostgres) GetTotalSentAmount(userTgID int64) (float64, error) {
-
-	var totalSent float64
+func (c *TransactionPostgres) GetTotalSentAmount(ctx context.Context, userID uuid.UUID) (_ models.Balance, err error) {
 
 	const getTotalSendQuery = `SELECT
-		COALESCE(SUM(CASE WHEN sender = $1 THEN amount ELSE 0 END ),0)
-		AS totalSent
-	FROM transactions_history
+    	currency,
+		COALESCE(SUM(CASE WHEN sender_id = $1 THEN amount ELSE 0 END ),0)
+	FROM transactions
+	GROUP BY currency
 `
-	err := c.db.QueryRow(getTotalSendQuery, userTgID).Scan(&totalSent)
+	rows, err := c.db.QueryContext(ctx, getTotalSendQuery, userID)
 	if err != nil {
-		return 0, fmt.Errorf("run sql getTotalSendQuery: %w", err)
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return models.Balance{}, fmt.Errorf("getTotalSendQuery timed out: %w", err)
+		}
+		return models.Balance{}, fmt.Errorf("run sql getTotalSendQuery: %w", err)
 	}
-	return totalSent, nil
+
+	defer func() {
+		if closeErr := rows.Close(); err != nil {
+			err = errors.Join(err, fmt.Errorf("close rows %w", closeErr))
+		}
+	}()
+
+	balance := models.Balance{}
+	for rows.Next() {
+		var currency string
+		var amount decimal.Decimal
+		if err := rows.Scan(&currency, &amount); err != nil {
+			return models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
+		}
+		curEnum, err := ParseCurrencyToEnum(currency)
+		if err != nil {
+			return models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
+		}
+
+		balance[curEnum] = amount
+	}
+	return balance, nil
 }
 
-func (c *TransactionPostgres) GetTotalReceivedAmount(userTgID int64) (float64, error) {
-	var totalReceived float64
+func (c *TransactionPostgres) GetTotalReceivedAmount(ctx context.Context, userTgID int64) (_ models.Balance, err error) {
 
 	const getTotalReceivedQuery = `SELECT
-		COALESCE(SUM(CASE WHEN recipient = $1 THEN amount ELSE 0 END ),0)
-		AS totalReceived
-	FROM transactions_history
+    currency,
+		COALESCE(SUM(CASE WHEN recipient_tg_id = $1 THEN amount ELSE 0 END ),0)
+	FROM transactions
+	GROUP BY currency
 `
-	err := c.db.QueryRow(getTotalReceivedQuery, userTgID).Scan(&totalReceived)
+	rows, err := c.db.QueryContext(ctx, getTotalReceivedQuery, userTgID)
 	if err != nil {
-		return 0, fmt.Errorf("run sql getTotalReceivedQuery: %w", err)
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return models.Balance{}, fmt.Errorf("getTotalReceivedQuery timed out: %w", err)
+		}
+		return models.Balance{}, fmt.Errorf("run sql getTotalSendQuery: %w", err)
 	}
-	return totalReceived, nil
+
+	defer func() {
+		if closeErr := rows.Close(); err != nil {
+			err = errors.Join(err, fmt.Errorf("close rows %w", closeErr))
+		}
+	}()
+
+	balance := models.Balance{}
+	for rows.Next() {
+		var currency string
+		var amount decimal.Decimal
+		if err := rows.Scan(&currency, &amount); err != nil {
+			return models.Balance{}, fmt.Errorf("error rows.Scan(): %v", err)
+		}
+		curEnum, err := ParseCurrencyToEnum(currency)
+		if err != nil {
+			return models.Balance{}, fmt.Errorf("error ParseCurrencyToEnum(currency): %w", err)
+		}
+
+		balance[curEnum] = amount
+	}
+	return balance, nil
 }

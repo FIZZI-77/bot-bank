@@ -1,33 +1,35 @@
 package tghandler
 
 import (
+	"context"
 	"github.com/mymmrac/telego"
+	"github.com/shopspring/decimal"
 	"github.com/sirupsen/logrus"
-	"tg_transaction/src/core/tghandler/messages"
+	"tgtransaction/src/core/tghandler/messages"
 )
 
 // Проверка что сумма положительна
 
-func (h *Handler) isCommandCorrect(command string, parts []string, amount float64) bool {
+func (h *Handler) isCommandCorrect(command string, parts []string, amount decimal.Decimal) bool {
 
-	if ((command == "/send" && len(parts) == 3) || (command == "/topup" && len(parts) == 2)) && amount <= 0 {
+	if ((command == "/send" && len(parts) == 4) || (command == "/topup" && len(parts) == 3)) && amount.LessThanOrEqual(decimal.NewFromInt(0)) {
 		logrus.Error("middleware: isCommandCorrect() : wrong amount for command")
 		return false
 	}
-	if command == "/send" && len(parts) != 3 {
+	if command == "/send" && len(parts) != 3 && len(parts) != 4 {
 		logrus.Error("middleware: isCommandCorrect() : wrong count arguments in command  /send")
 		return false
 	}
 
-	if command == "/topup" && len(parts) != 2 {
+	if command == "/topup" && len(parts) != 2 && len(parts) != 3 {
 		logrus.Error("middleware: isCommandCorrect() : wrong count arguments in command  /top-up")
 		return false
 	}
 	return true
 }
 
-func (h *Handler) isRecipientCorrect(recipient string, bot *telego.Bot, chatID int64) bool {
-	isExist, err := h.service.UserExistsByUsername(recipient)
+func (h *Handler) isRecipientCorrect(ctx context.Context, recipient string, bot *telego.Bot, chatID int64) bool {
+	isExist, err := h.service.UserExistsByUsername(ctx, recipient)
 	if err != nil {
 		logrus.Errorf("middleware: isRecipientCorrect() : error checking user existence: %v", err.Error())
 	}
